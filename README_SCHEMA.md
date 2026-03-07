@@ -148,6 +148,6 @@ Para que el rol "Docente" pueda gestionar el contenido, debes configurar las sig
 ## Datos de Ejemplo
 Una vez creadas las colecciones y configuradas las reglas, puedes añadir algunos registros de prueba:
 
-1. Crea un **Sprint**: "Fundamentos de Node.js"
+1. Crea un **Sprint**: "Fundamentos de React"
 2. Crea una **Clase**: "Instalación y configuración" (sprint: [ID del sprint anterior])
 3. Crea un **Link**: "Video de instalación" (url: https://youtube.com/..., type: video, class: [ID de la clase anterior])

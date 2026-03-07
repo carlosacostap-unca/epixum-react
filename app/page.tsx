@@ -15,10 +15,10 @@ export default async function Home() {
         <div className="container mx-auto p-8 min-h-screen">
             <header className="mb-12 text-center">
                 <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
-                Curso de Node.js
+                Curso de React
                 </h1>
                 <p className="text-xl text-zinc-500 dark:text-zinc-400">
-                Domina el backend con Node.js, paso a paso.
+                Domina el frontend con React, paso a paso.
                 </p>
             </header>
             
@@ -108,10 +108,10 @@ export default async function Home() {
     <div className="container mx-auto p-8 min-h-screen">
       <header className="mb-12 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
-          Curso de Node.js
+          Curso de React
         </h1>
         <p className="text-xl text-zinc-500 dark:text-zinc-400">
-          Domina el backend con Node.js, paso a paso.
+          Domina el frontend con React, paso a paso.
         </p>
       </header>
 
