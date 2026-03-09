@@ -203,3 +203,48 @@ export async function updateReviewNotes(reviewId: string, privateNote: string, p
         return { success: false, error: error?.message || 'Error al actualizar las notas' };
     }
 }
+
+export async function upsertReviewNotes(
+    sprintId: string, 
+    studentId: string, 
+    privateNote: string, 
+    publicNote: string,
+    reviewId?: string
+) {
+    const pb = await createServerClient();
+    const user = pb.authStore.model;
+
+    if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
+        return { success: false, error: 'No autorizado' };
+    }
+
+    try {
+        if (reviewId) {
+            // Update existing review
+            await pb.collection('reviews').update(reviewId, {
+                private_note: privateNote,
+                public_note: publicNote
+            });
+        } else {
+            // Create new review
+            // We set start/end time to now as placeholders since they are likely required
+            const now = new Date().toISOString();
+            await pb.collection('reviews').create({
+                sprint: sprintId,
+                teacher: user.id,
+                student: studentId,
+                startTime: now,
+                endTime: now,
+                private_note: privateNote,
+                public_note: publicNote
+            });
+        }
+        
+        revalidatePath(`/students`);
+        revalidatePath(`/reviews/${sprintId}`);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error upserting review notes:', error);
+        return { success: false, error: error?.message || 'Error al guardar las notas' };
+    }
+}
