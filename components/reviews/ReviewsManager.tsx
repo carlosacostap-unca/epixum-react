@@ -30,6 +30,10 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
 
   // Check if current student has a booking
   const myBooking = isStudent ? initialReviews.find(r => r.student === currentUser.id) : null;
+  
+  // Filter reviews if student has a booking
+  const reviewsToDisplay = (isStudent && myBooking) ? [myBooking] : initialReviews;
+  const title = (isStudent && myBooking) ? "Tu Turno Reservado" : "Turnos Disponibles";
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,19 +211,19 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
         {/* Reviews List */}
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
-                <h2 className="text-xl font-bold">Turnos Disponibles</h2>
+                <h2 className="text-xl font-bold">{title}</h2>
                 <span className="text-sm text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
-                    Total: {initialReviews.length}
+                    Total: {reviewsToDisplay.length}
                 </span>
             </div>
             
-            {initialReviews.length === 0 ? (
+            {reviewsToDisplay.length === 0 ? (
                 <div className="p-12 text-center text-zinc-500 dark:text-zinc-400">
                     No hay turnos creados para este sprint.
                 </div>
             ) : (
                 <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                    {initialReviews.map((review) => {
+                    {reviewsToDisplay.map((review) => {
                         const isBooked = !!review.student;
                         const isMyBooking = review.student === currentUser.id;
                         const studentName = review.expand?.student?.name || "Estudiante";
