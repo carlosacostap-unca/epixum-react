@@ -145,6 +145,25 @@ Para que el rol "Docente" pueda gestionar el contenido, debes configurar las sig
     - **Update**: `author = @request.auth.id || @request.auth.role = "docente" || @request.auth.role = "admin"`
     - **Delete**: `author = @request.auth.id || @request.auth.role = "docente" || @request.auth.role = "admin"`
 
+## 11. Colección: `reviews` (Turnos de Revisión y Estados de Sprint)
+- **Name**: `reviews`
+- **Type**: `Base`
+- **Fields**:
+    - `sprint`: Relation (Single, Required) -> Collection: `sprints`
+    - `teacher`: Relation (Single, Required) -> Collection: `users` (docente)
+    - `student`: Relation (Single, Optional) -> Collection: `users` (estudiante)
+    - `startTime`: Date (Required)
+    - `endTime`: Date (Required)
+    - `private_note`: Text (Opcional, solo visible para docentes)
+    - `public_note`: Text (Opcional, feedback para el estudiante)
+    - `status`: Select (options: "Aprobado", "Pendiente", "No presentó", "Desaprobado") (Default: "Pendiente")
+- **API Rules**:
+    - **List/View Rule**: `@request.auth.id != ""`
+    - **Create Rule**: `@request.auth.role = "docente" || @request.auth.role = "admin"`
+    - **Update Rule**: `@request.auth.role = "docente" || @request.auth.role = "admin" || (@request.auth.role = "estudiante" && (@request.data.student = @request.auth.id || @request.data.student = ""))`
+        - *Nota*: Permite a estudiantes reservar (asignarse) o liberar (desasignarse) su turno.
+    - **Delete Rule**: `@request.auth.role = "docente" || @request.auth.role = "admin"`
+
 ## Datos de Ejemplo
 Una vez creadas las colecciones y configuradas las reglas, puedes añadir algunos registros de prueba:
 

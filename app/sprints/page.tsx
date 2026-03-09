@@ -1,5 +1,5 @@
-import { getSprints } from "@/lib/data";
-import { Sprint } from "@/types";
+import { getSprints, getUserReviews } from "@/lib/data";
+import { Sprint, Review } from "@/types";
 import Link from "next/link";
 import FormattedDate from "@/components/FormattedDate";
 import { getCurrentUser } from "@/lib/pocketbase-server";
@@ -14,17 +14,23 @@ export default async function SprintsPage() {
     redirect("/login");
   }
 
+  const isTeacher = user.role === 'docente' || user.role === 'admin';
+
   let sprints: Sprint[] = [];
+  let reviews: Review[] = [];
   let error = null;
 
   try {
     sprints = await getSprints();
+    if (!isTeacher) {
+      reviews = await getUserReviews(user.id);
+    }
   } catch (e: any) {
-    console.error("Error fetching sprints:", e);
+    console.error("Error fetching data:", e);
     error = `Error al conectar con la base de datos: ${e?.message || String(e)}`;
   }
 
-  const isTeacher = user.role === 'docente' || user.role === 'admin';
+  const reviewsMap = new Map(reviews.map(r => [r.sprint, r]));
 
   return (
     <div className="container mx-auto p-8 min-h-screen">
@@ -54,16 +60,34 @@ export default async function SprintsPage() {
             <SprintManagement user={user} sprints={sprints} />
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sprints.map((sprint) => (
+            {sprints.map((sprint) => {
+              const review = reviewsMap.get(sprint.id);
+              const status = review?.status || 'Pendiente';
+              let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
+              
+              if (status === 'Aprobado') {
+                  statusColor = "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+              } else if (status === 'No presentó') {
+                  statusColor = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
+              } else if (status === 'Desaprobado') {
+                  statusColor = "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300";
+              }
+
+              return (
                 <Link 
                 href={`/sprints/${sprint.id}`} 
                 key={sprint.id} 
                 className="group block p-6 bg-white dark:bg-zinc-900 rounded-xl shadow-sm hover:shadow-md transition-all border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                 >
                 <div className="flex items-center justify-between mb-4">
-                    <span className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                    Sprint
-                    </span>
+                    <div className="flex gap-2">
+                        <span className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                        Sprint
+                        </span>
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusColor}`}>
+                            {status}
+                        </span>
+                    </div>
                     {(sprint.startDate || sprint.endDate) && (
                     <span className="text-xs text-zinc-500 dark:text-zinc-400 flex gap-1">
                         {sprint.startDate && <FormattedDate date={sprint.startDate} />} 
@@ -79,7 +103,7 @@ export default async function SprintsPage() {
                     {sprint.description}
                 </p>
                 </Link>
-            ))}
+            )})}
             </div>
         )
       )}

@@ -89,6 +89,7 @@ export interface Review extends BaseModel {
   endTime: string; // ISO Date string
   private_note?: string; // Note only for teachers
   public_note?: string;  // Feedback visible to the student
+  status?: 'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado';
   expand?: {
     sprint?: Sprint;
     teacher?: User;

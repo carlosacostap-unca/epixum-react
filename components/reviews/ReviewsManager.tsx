@@ -228,6 +228,16 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
                         const isMyBooking = review.student === currentUser.id;
                         const studentName = review.expand?.student?.name || "Estudiante";
                         
+                        const status = review.status || 'Pendiente';
+                        let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
+                        if (status === 'Aprobado') {
+                            statusColor = "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+                        } else if (status === 'No presentó') {
+                            statusColor = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
+                        } else if (status === 'Desaprobado') {
+                            statusColor = "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300";
+                        }
+
                         return (
                             <div key={review.id} className={`p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${isMyBooking ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
                                 <div>
@@ -243,9 +253,12 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
                                     </div>
                                     
                                     {isBooked ? (
-                                        <div className="flex items-center gap-2 text-sm">
+                                        <div className="flex items-center gap-2 text-sm flex-wrap">
                                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${isMyBooking ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
                                                 Reservado
+                                            </span>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusColor}`}>
+                                                {status}
                                             </span>
                                             {isTeacher && (
                                                 <span className="text-zinc-600 dark:text-zinc-400">

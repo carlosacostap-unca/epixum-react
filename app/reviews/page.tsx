@@ -1,5 +1,5 @@
-import { getSprints } from "@/lib/data";
-import { Sprint } from "@/types";
+import { getSprints, getUserReviews } from "@/lib/data";
+import { Sprint, Review } from "@/types";
 import Link from "next/link";
 import FormattedDate from "@/components/FormattedDate";
 import { getCurrentUser } from "@/lib/pocketbase-server";
@@ -14,6 +14,18 @@ export default async function ReviewsPage() {
   }
 
   const sprints = await getSprints();
+  let reviews: Review[] = [];
+
+  if (user.role === 'estudiante') {
+      try {
+          reviews = await getUserReviews(user.id);
+      } catch (e) {
+          console.error("Error fetching reviews:", e);
+      }
+  }
+
+  const reviewsMap = new Map(reviews.map(r => [r.sprint, r]));
+  const isStudent = user.role === 'estudiante';
 
   return (
     <div className="container mx-auto p-8 min-h-screen">
@@ -40,16 +52,36 @@ export default async function ReviewsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sprints.map((sprint) => (
+          {sprints.map((sprint) => {
+            const review = reviewsMap.get(sprint.id);
+            const status = review?.status || 'Pendiente';
+            let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
+            
+            if (status === 'Aprobado') {
+                statusColor = "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+            } else if (status === 'No presentó') {
+                statusColor = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
+            } else if (status === 'Desaprobado') {
+                statusColor = "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300";
+            }
+
+            return (
             <Link 
               href={`/reviews/${sprint.id}`} 
               key={sprint.id} 
               className="group block p-6 bg-white dark:bg-zinc-900 rounded-xl shadow-sm hover:shadow-md transition-all border border-zinc-200 dark:border-zinc-800 hover:border-purple-500 dark:hover:border-purple-500"
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-200">
-                  Sprint
-                </span>
+                <div className="flex gap-2">
+                    <span className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-200">
+                    Sprint
+                    </span>
+                    {isStudent && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColor}`}>
+                            {status}
+                        </span>
+                    )}
+                </div>
                 {(sprint.startDate || sprint.endDate) && (
                   <span className="text-xs text-zinc-500 dark:text-zinc-400 flex gap-1">
                     {sprint.startDate && <FormattedDate date={sprint.startDate} />} 
@@ -69,7 +101,7 @@ export default async function ReviewsPage() {
                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </div>
             </Link>
-          ))}
+          )})}
         </div>
       )}
     </div>

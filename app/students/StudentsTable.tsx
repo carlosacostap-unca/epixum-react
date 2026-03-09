@@ -18,6 +18,7 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [privateNote, setPrivateNote] = useState('');
   const [publicNote, setPublicNote] = useState('');
+  const [status, setStatus] = useState<'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado'>('Pendiente');
   const [reviewId, setReviewId] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -31,6 +32,7 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
     setSelectedSprint(sprint);
     setPrivateNote(review?.private_note || '');
     setPublicNote(review?.public_note || '');
+    setStatus(review?.status || 'Pendiente');
     setReviewId(review?.id);
     setIsModalOpen(true);
   };
@@ -44,6 +46,7 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
       selectedStudent.id,
       privateNote,
       publicNote,
+      status,
       reviewId
     );
 
@@ -86,19 +89,29 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
                 </td>
                 {sprints.map(sprint => {
                   const review = getReview(student.id, sprint.id);
-                  const hasNotes = review && (review.private_note || review.public_note);
+                  const status = review?.status || 'Pendiente';
                   
+                  let statusColor = 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400';
+                  if (status === 'Aprobado') statusColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+                  if (status === 'No presentó') statusColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+                  if (status === 'Desaprobado') statusColor = 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
+                  if (status === 'Pendiente' && review) statusColor = 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+
                   return (
                     <td key={sprint.id} className="p-4">
                       <button
                         onClick={() => openModal(student, sprint)}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                          hasNotes 
-                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50'
-                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                        }`}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 ${statusColor}`}
                       >
-                        {hasNotes ? 'Ver notas' : 'Añadir nota'}
+                        <div className="flex flex-col">
+                          <span className="font-bold">{status}</span>
+                          {review && (review.private_note || review.public_note) && (
+                            <span className="text-[10px] opacity-70 mt-1 flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                              Con notas
+                            </span>
+                          )}
+                        </div>
                       </button>
                     </td>
                   );
@@ -132,6 +145,33 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
             </div>
             
             <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Estado del Sprint
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {(['Pendiente', 'Aprobado', 'No presentó', 'Desaprobado'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setStatus(s)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
+                        status === s
+                          ? s === 'Aprobado' 
+                            ? 'bg-green-100 text-green-700 border-green-500 dark:bg-green-900/50 dark:text-green-300' 
+                            : s === 'No presentó'
+                              ? 'bg-red-100 text-red-700 border-red-500 dark:bg-red-900/50 dark:text-red-300'
+                              : s === 'Desaprobado'
+                                ? 'bg-orange-100 text-orange-700 border-orange-500 dark:bg-orange-900/50 dark:text-orange-300'
+                                : 'bg-yellow-100 text-yellow-700 border-yellow-500 dark:bg-yellow-900/50 dark:text-yellow-300'
+                          : 'bg-zinc-100 text-zinc-600 border-transparent hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                   Nota Privada (Solo visible para docentes)

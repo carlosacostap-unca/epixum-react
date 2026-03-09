@@ -209,6 +209,7 @@ export async function upsertReviewNotes(
     studentId: string, 
     privateNote: string, 
     publicNote: string,
+    status: 'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado',
     reviewId?: string
 ) {
     const pb = await createServerClient();
@@ -223,7 +224,8 @@ export async function upsertReviewNotes(
             // Update existing review
             await pb.collection('reviews').update(reviewId, {
                 private_note: privateNote,
-                public_note: publicNote
+                public_note: publicNote,
+                status: status
             });
         } else {
             // Create new review
@@ -236,7 +238,8 @@ export async function upsertReviewNotes(
                 startTime: now,
                 endTime: now,
                 private_note: privateNote,
-                public_note: publicNote
+                public_note: publicNote,
+                status: status
             });
         }
         

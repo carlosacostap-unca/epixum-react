@@ -1,4 +1,4 @@
-import { getSprint, getClasses, getAssignments } from "@/lib/data";
+import { getSprint, getClasses, getAssignments, getUserReview } from "@/lib/data";
 import { Sprint, Class, Assignment } from "@/types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,6 +14,7 @@ export default async function SprintPage({ params }: { params: Promise<{ id: str
   let classes: Class[] = [];
   let assignments: Assignment[] = [];
   const user = await getCurrentUser();
+  let review = null;
   
   try {
     sprint = await getSprint(id);
@@ -22,22 +23,41 @@ export default async function SprintPage({ params }: { params: Promise<{ id: str
     }
     classes = await getClasses(id);
     assignments = await getAssignments(id);
+    if (user && user.role === 'estudiante') {
+      review = await getUserReview(id, user.id);
+    }
   } catch (error) {
     console.error("Error fetching sprint details:", error);
     notFound();
   }
 
   const isAuthorized = user && (user.role === 'docente' || user.role === 'admin');
+  
+  const status = review?.status || 'Pendiente';
+  let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
+  
+  if (status === 'Aprobado') {
+      statusColor = "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+  } else if (status === 'No presentó') {
+      statusColor = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
+  } else if (status === 'Desaprobado') {
+      statusColor = "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300";
+  }
 
   return (
     <div className="container mx-auto p-8 min-h-screen">
-      <Link href="/" className="text-blue-500 hover:underline mb-8 inline-block">&larr; Volver al curso</Link>
+      <Link href="/sprints" className="text-blue-500 hover:underline mb-8 inline-block">&larr; Volver a sprints</Link>
       
       <header className="mb-12">
         <div className="flex items-center gap-4 mb-2">
             <span className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 Sprint
             </span>
+            {user?.role === 'estudiante' && (
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusColor}`}>
+                  {status}
+              </span>
+            )}
             {(sprint.startDate || sprint.endDate) && (
               <span className="text-sm text-zinc-500 dark:text-zinc-400 flex gap-1">
                 {sprint.startDate && <FormattedDate date={sprint.startDate} />} 

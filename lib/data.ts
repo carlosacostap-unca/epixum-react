@@ -87,6 +87,20 @@ export const getUserReview = cache(async (sprintId: string, userId: string) => {
   }
 });
 
+export const getUserReviews = cache(async (userId: string) => {
+  const pb = await createServerClient();
+  try {
+    const records = await pb.collection('reviews').getFullList<Review>({
+      filter: `student = "${userId}"`,
+      sort: '-created',
+    });
+    return records;
+  } catch (error) {
+    console.error('Error fetching user reviews:', error);
+    return [];
+  }
+});
+
 export const getSprints = cache(async () => {
     const cookieStore = await cookies();
     const token = cookieStore.get('pb_auth')?.value;
