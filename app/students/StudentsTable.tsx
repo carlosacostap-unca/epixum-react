@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { User, Sprint, Review } from '@/types';
 import { upsertReviewNotes } from '@/lib/actions-reviews';
 import { useRouter } from 'next/navigation';
+import FormattedDate from "@/components/FormattedDate";
 
 interface StudentsTableProps {
   students: User[];
@@ -133,6 +134,17 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
                 <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                   Estudiante: {selectedStudent.name}
                 </p>
+                {getReview(selectedStudent.id, selectedSprint.id)?.startTime ? (
+                   <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-2">
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                     Turno reservado: <FormattedDate date={getReview(selectedStudent.id, selectedSprint.id)!.startTime} showTime={true} />
+                   </p>
+                ) : (
+                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 flex items-center gap-2">
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                     Sin turno reservado
+                   </p>
+                )}
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
