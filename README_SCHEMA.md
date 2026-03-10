@@ -83,7 +83,7 @@ Para que el rol "Docente" pueda gestionar el contenido, debes configurar las sig
 - **Fields**:
     - `assignment`: Relation (Single, Required) -> Collection: `assignments`
     - `student`: Relation (Single, Required) -> Collection: `users`
-    - `repositoryUrl`: URL (Required)
+    - `repositoryUrl`: Text (Required) - Stores JSON array of URLs or single URL string
 - **Constraints**:
     - Unique index on `assignment` + `student` (Un estudiante solo puede tener una entrega por TP)
 - **API Rules**:
