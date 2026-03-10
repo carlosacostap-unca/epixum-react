@@ -89,6 +89,8 @@ export interface Review extends BaseModel {
   endTime: string; // ISO Date string
   private_note?: string; // Note only for teachers
   public_note?: string;  // Feedback visible to the student
+  meetingLink?: string; // Zoom/Meet link
+  roomNumber?: string; // Physical or virtual room number
   status?: 'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado';
   expand?: {
     sprint?: Sprint;

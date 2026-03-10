@@ -33,7 +33,9 @@ export async function createReviewSlotsBatch(
     slotDuration: number, // in minutes
     quantity: number,
     breakDuration: number = 0, // in minutes
-    breakFrequency: number = 0 // every N slots
+    breakFrequency: number = 0, // every N slots
+    meetingLink: string = "",
+    roomNumber: string = ""
 ) {
     const pb = await createServerClient();
     const user = pb.authStore.model;
@@ -55,6 +57,8 @@ export async function createReviewSlotsBatch(
                 teacher: user.id,
                 startTime: startTime.toISOString(),
                 endTime: endTime.toISOString(),
+                meetingLink,
+                roomNumber
             });
 
             // Update currentStartTime for the next slot

@@ -156,6 +156,8 @@ Para que el rol "Docente" pueda gestionar el contenido, debes configurar las sig
     - `endTime`: Date (Required)
     - `private_note`: Text (Opcional, solo visible para docentes)
     - `public_note`: Text (Opcional, feedback para el estudiante)
+    - `meetingLink`: URL (Opcional, enlace de Zoom/Meet)
+    - `roomNumber`: Text (Opcional, número de sala)
     - `status`: Select (options: "Aprobado", "Pendiente", "No presentó", "Desaprobado") (Default: "Pendiente")
 - **API Rules**:
     - **List/View Rule**: `@request.auth.id != ""`

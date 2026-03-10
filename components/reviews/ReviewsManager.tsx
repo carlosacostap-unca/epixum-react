@@ -24,6 +24,8 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
   const [slotQuantity, setSlotQuantity] = useState(1);
   const [breakDuration, setBreakDuration] = useState(0);
   const [breakFrequency, setBreakFrequency] = useState(0);
+  const [meetingLink, setMeetingLink] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
 
   const isTeacher = currentUser.role === "docente" || currentUser.role === "admin";
   const isStudent = currentUser.role === "estudiante";
@@ -47,7 +49,9 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
             slotDuration, 
             slotQuantity, 
             breakDuration, 
-            breakFrequency
+            breakFrequency,
+            meetingLink,
+            roomNumber
         );
 
         if (res.success) {
@@ -179,13 +183,36 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
                                         onChange={(e) => setBreakFrequency(parseInt(e.target.value) || 0)}
                                         className="w-full p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                                         placeholder="Ej: 2 (descanso cada 2 turnos)"
-                                    />
-                                </div>
+                                />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex justify-end pt-2">
-                            <button 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-zinc-700 dark:text-zinc-300">Enlace de Zoom/Meet (Opcional)</label>
+                            <input 
+                                type="url" 
+                                value={meetingLink}
+                                onChange={(e) => setMeetingLink(e.target.value)}
+                                className="w-full p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="https://zoom.us/..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-zinc-700 dark:text-zinc-300">Número de Sala (Opcional)</label>
+                            <input 
+                                type="text" 
+                                value={roomNumber}
+                                onChange={(e) => setRoomNumber(e.target.value)}
+                                className="w-full p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="Ej: Sala 1"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <button 
                                 type="submit" 
                                 disabled={isPending}
                                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium flex items-center gap-2"
@@ -245,11 +272,29 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
                                         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         </div>
-                                        <span className="font-medium text-lg">
-                                            <FormattedDate date={review.startTime} showTime={true} /> 
-                                            <span className="mx-2 text-zinc-400">-</span>
-                                            <FormattedDate date={review.endTime} showTime={true} />
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-lg">
+                                                <FormattedDate date={review.startTime} showTime={true} /> 
+                                                <span className="mx-2 text-zinc-400">-</span>
+                                                <FormattedDate date={review.endTime} showTime={true} />
+                                            </span>
+                                            {(review.meetingLink || review.roomNumber) && (
+                                                <div className="flex flex-wrap gap-3 text-sm mt-1">
+                                                    {review.meetingLink && (
+                                                        <a href={review.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                                            Unirse a la reunión
+                                                        </a>
+                                                    )}
+                                                    {review.roomNumber && (
+                                                        <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                                            Sala: {review.roomNumber}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     
                                     {isBooked ? (
