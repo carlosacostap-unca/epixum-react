@@ -14,6 +14,8 @@ export default function ReviewNotesForm({ review }: ReviewNotesFormProps) {
   const [isPending, startTransition] = useTransition();
   const [privateNote, setPrivateNote] = useState(review.private_note || "");
   const [publicNote, setPublicNote] = useState(review.public_note || "");
+  const [meetingLink, setMeetingLink] = useState(review.meetingLink || "");
+  const [roomNumber, setRoomNumber] = useState(review.roomNumber || "");
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -21,10 +23,10 @@ export default function ReviewNotesForm({ review }: ReviewNotesFormProps) {
     setMessage(null);
 
     startTransition(async () => {
-      const res = await updateReviewNotes(review.id, privateNote, publicNote);
+      const res = await updateReviewNotes(review.id, privateNote, publicNote, meetingLink, roomNumber);
       
       if (res.success) {
-        setMessage({ type: 'success', text: 'Notas actualizadas correctamente' });
+        setMessage({ type: 'success', text: 'Información actualizada correctamente' });
         router.refresh();
       } else {
         setMessage({ type: 'error', text: res.error || 'Error al guardar' });
@@ -37,7 +39,7 @@ export default function ReviewNotesForm({ review }: ReviewNotesFormProps) {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2">
             <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            Notas del Docente
+            Detalles y Notas
         </h2>
         
         {message && (
@@ -47,7 +49,34 @@ export default function ReviewNotesForm({ review }: ReviewNotesFormProps) {
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Enlace de Zoom/Meet
+            </label>
+            <input
+                type="url"
+                value={meetingLink}
+                onChange={(e) => setMeetingLink(e.target.value)}
+                className="w-full p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="https://zoom.us/..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Número de Sala
+            </label>
+            <input
+                type="text"
+                value={roomNumber}
+                onChange={(e) => setRoomNumber(e.target.value)}
+                className="w-full p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Ej: Sala 1"
+            />
+          </div>
+      </div>
+
+      <div className="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 flex justify-between">
             <span>Nota Privada (Solo docentes)</span>
             <span className="text-xs text-zinc-400 font-normal">Visible solo para ti y otros docentes</span>

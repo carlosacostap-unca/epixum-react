@@ -182,7 +182,13 @@ export async function getReview(reviewId: string) {
     }
 }
 
-export async function updateReviewNotes(reviewId: string, privateNote: string, publicNote: string) {
+export async function updateReviewNotes(
+    reviewId: string, 
+    privateNote: string, 
+    publicNote: string,
+    meetingLink: string = "",
+    roomNumber: string = ""
+) {
     const pb = await createServerClient();
     const user = pb.authStore.model;
 
@@ -196,7 +202,9 @@ export async function updateReviewNotes(reviewId: string, privateNote: string, p
         
         await pb.collection('reviews').update(reviewId, {
             private_note: privateNote,
-            public_note: publicNote
+            public_note: publicNote,
+            meetingLink,
+            roomNumber
         });
         
         revalidatePath(`/reviews/${review.sprint}`);
