@@ -10,9 +10,10 @@ interface StudentsTableProps {
   students: User[];
   sprints: Sprint[];
   reviews: Review[];
+  readOnly?: boolean;
 }
 
-export default function StudentsTable({ students, sprints, reviews }: StudentsTableProps) {
+export default function StudentsTable({ students, sprints, reviews, readOnly = false }: StudentsTableProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
@@ -31,7 +32,7 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
     const review = getReview(student.id, sprint.id);
     setSelectedStudent(student);
     setSelectedSprint(sprint);
-    setPrivateNote(review?.private_note || '');
+    setPrivateNote(review?.privateNote || '');
     setPublicNote(review?.public_note || '');
     setStatus(review?.status || 'Pendiente');
     setReviewId(review?.id);
@@ -101,12 +102,13 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
                   return (
                     <td key={sprint.id} className="p-4">
                       <button
-                        onClick={() => openModal(student, sprint)}
+                        onClick={() => !readOnly && openModal(student, sprint)}
+                        disabled={readOnly}
                         className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 ${statusColor}`}
                       >
                         <div className="flex flex-col">
                           <span className="font-bold">{status}</span>
-                          {review && (review.private_note || review.public_note) && (
+                          {review && (review.privateNote || review.public_note) && (
                             <span className="text-[10px] opacity-70 mt-1 flex items-center gap-1">
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               Con notas
@@ -123,7 +125,7 @@ export default function StudentsTable({ students, sprints, reviews }: StudentsTa
         </table>
       </div>
 
-      {isModalOpen && selectedStudent && selectedSprint && (
+      {!readOnly && isModalOpen && selectedStudent && selectedSprint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl w-full max-w-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">

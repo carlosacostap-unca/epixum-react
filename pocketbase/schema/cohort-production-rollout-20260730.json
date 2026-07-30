@@ -1,0 +1,89 @@
+{
+  "target": "https://pocketbase-react.epixum.com/",
+  "checkedAt": "2026-07-30T14:19:01.503Z",
+  "backup": {
+    "name": "pre-cohort-migration-2026-07-30t14-10-52-435z.zip",
+    "sha256": "cea4a74a55284a59d9d154557d815821f5bffa41e27439cb93a99c594a87e1e8",
+    "localVerifiedCopy": "C:\\Users\\carlo\\AppData\\Local\\Temp\\epixum-pocketbase-backups\\pre-cohort-migration-2026-07-30t14-10-52-435z.zip",
+    "restoredWithPocketBaseVersion": "0.39.9",
+    "verification": "Downloaded checksum verified; restored preflight, migration idempotency, finalization idempotency and permission matrix passed.",
+    "verifiedBy": "Codex automated rollout under explicit project-owner approval",
+    "rollbackOwner": "project owner"
+  },
+  "beforeSnapshot": {
+    "filename": "C:\\Proyectos\\epixum-react\\pocketbase\\schema\\pre-cohort-production-20260730.json",
+    "sha256": "746c2bdd13d44fb1d430c9f3a9939fc5f19ce36c6c6f1ac36f106c3c70cbed36",
+    "ruleHashes": {
+      "assignments": "d5b02f52faebf246a9092f193f7b9baf0c510ace5e38be54ce10515715d70569",
+      "classes": "d5b02f52faebf246a9092f193f7b9baf0c510ace5e38be54ce10515715d70569",
+      "deliveries": "cd9075afdedb9a6ff00d83670a806369f7c53e39a22afbdde134d4c2e6bcf3c5",
+      "inquiries": "f164ca653ed8dce32fdd2e8667bae217c8590f992eafb25d804d25e86def9ce9",
+      "inquiry_responses": "f164ca653ed8dce32fdd2e8667bae217c8590f992eafb25d804d25e86def9ce9",
+      "links": "d5b02f52faebf246a9092f193f7b9baf0c510ace5e38be54ce10515715d70569",
+      "reviews": "2418608e4577e2d630adad31c9d8ac9914e394d15e601fe904f8efd40200af5d",
+      "sprints": "d5b02f52faebf246a9092f193f7b9baf0c510ace5e38be54ce10515715d70569"
+    }
+  },
+  "afterSnapshot": {
+    "filename": "C:\\Proyectos\\epixum-react\\pocketbase\\schema\\post-cohort-production-20260730.json",
+    "sha256": "cd7664f829fd37cfaf0c683b1896ebc2e571e177051bc2aa0095bdf5efb1dd6b",
+    "ruleHashes": {
+      "assignments": "3a43e7df8a9b6470eca83a6eb9f298bc6074948777741c6753060d9aa5e17e47",
+      "classes": "3a43e7df8a9b6470eca83a6eb9f298bc6074948777741c6753060d9aa5e17e47",
+      "deliveries": "d9ffaf15916b9e03b8dd48224d238e2e3f4fb926c73e0c9002c15ed9ecb5bd4a",
+      "inquiries": "88a5bc1d27959441af8850f58463d83423d3bb08b531cf8049b926e54f0b9f99",
+      "inquiry_responses": "ff9487264c7384447eb87296d60bb8b21b336a519ea2ddd185b0bcb7842aa4cc",
+      "links": "3e3f2c094eb0e891b768848feb22e31f3a9d07e24a58508f1b875c40192cceaa",
+      "review_private_notes": "16d76a99519e6bf9ecd44bda71de835e3eaea7881a187683f129542de56f40d6",
+      "reviews": "63c3e04318e85abe59ba3cabfb411373b18e25aab0f9e4c452f56d33708a8ecc",
+      "sprints": "256e62229ed156753652e0b05275e467730fcbe2ce046c3a071c5d27de26665d"
+    }
+  },
+  "beforeCounts": {
+    "users": 22,
+    "sprints": 6,
+    "classes": 18,
+    "assignments": 6,
+    "links": 34,
+    "deliveries": 57,
+    "reviews": 100,
+    "inquiries": 6,
+    "inquiry_responses": 7
+  },
+  "afterCounts": {
+    "users": 22,
+    "courses": 1,
+    "cohorts": 1,
+    "enrollments": 21,
+    "sprints": 6,
+    "classes": 18,
+    "assignments": 6,
+    "links": 34,
+    "deliveries": 57,
+    "reviews": 100,
+    "review_private_notes": 30,
+    "inquiries": 6,
+    "inquiry_responses": 7
+  },
+  "checks": {
+    "orphanSprints": 0,
+    "orphanInquiries": 0,
+    "duplicateEnrollments": 0,
+    "duplicateReservations": 0,
+    "recentLogsSampled": 200,
+    "recentAuthorizationFailures": 0,
+    "authorizationFailureSummary": [],
+    "crossCohortRuleHashesChanged": [
+      "sprints",
+      "classes",
+      "assignments",
+      "links",
+      "deliveries",
+      "reviews",
+      "review_private_notes",
+      "inquiries",
+      "inquiry_responses"
+    ]
+  },
+  "ok": true
+}

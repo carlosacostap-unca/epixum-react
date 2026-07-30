@@ -29,7 +29,17 @@ export async function getCurrentUser() {
   if (!pb.authStore.isValid) return null;
   try {
     return pb.authStore.model as unknown as User;
-  } catch (e) {
+  } catch {
     return null;
   }
+}
+
+export async function createPrivilegedServerClient() {
+  const url = process.env['NEXT_PUBLIC_POCKETBASE_URL'];
+  const identity = process.env['POCKETBASE_ADMIN_EMAIL'];
+  const password = process.env['POCKETBASE_ADMIN_PASSWORD'];
+  if (!url || !identity || !password) throw new Error('POCKETBASE_ADMIN_CREDENTIALS_MISSING');
+  const privilegedPb = new PocketBase(url);
+  await privilegedPb.collection('_superusers').authWithPassword(identity, password, { autoRefreshThreshold: 0 });
+  return privilegedPb;
 }

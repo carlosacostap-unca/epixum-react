@@ -9,7 +9,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mcp:pocketbase": "tsx --env-file=.env.local mcp/pocketbase-server.ts",
+    "mcp:pocketbase:test": "tsx --env-file=.env.local mcp/smoke-test.ts",
+    "pb:cohorts:snapshot": "tsx --env-file=.env.local scripts/pocketbase/schema-snapshot.ts",
+    "pb:cohorts:preflight": "tsx --env-file=.env.local scripts/pocketbase/preflight.ts --dry-run",
+    "pb:cohorts:backup-production": "tsx --env-file=.env.local scripts/pocketbase/production-backup.ts",
+    "pb:cohorts:monitor-production": "tsx --env-file=.env.local scripts/pocketbase/production-monitor.ts",
+    "pb:cohorts:migrate": "tsx --env-file=.env.local scripts/pocketbase/migrate-cohorts.ts",
+    "pb:cohorts:finalize": "tsx --env-file=.env.local scripts/pocketbase/migrate-cohorts.ts --finalize --schema-only",
+    "pb:cohorts:seed-test": "tsx scripts/pocketbase/seed-cohort-test.ts",
+    "pb:cohorts:seed-e2e": "tsx scripts/pocketbase/seed-cohort-e2e.ts",
+    "pb:cohorts:test-permissions": "tsx scripts/pocketbase/permission-matrix.ts",
+    "test:pocketbase-tools": "tsx --test scripts/pocketbase/*.test.ts",
+    "test:cohort-data": "tsx --test lib/cohort-cache.test.ts",
+    "test:cohort-navigation": "tsx --test lib/cohort-navigation.test.ts",
+    "test:cohort-admin": "tsx --test lib/cohort-admin-policy.test.ts scripts/pocketbase/cohort-schema.test.ts",
+    "test:cohort-academics": "tsx --test lib/review-privacy.test.ts",
+    "test:e2e:cohorts": "node scripts/run-cohort-e2e.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -24,6 +41,8 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20",
@@ -32,6 +51,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.1",
+    "typescript": "^5",
+    "zod": "^4.4.3"
   }
 }

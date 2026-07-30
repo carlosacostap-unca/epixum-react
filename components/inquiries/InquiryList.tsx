@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 interface InquiryListProps {
+  cohortId: string;
   inquiries: Inquiry[];
   currentUser: User | null;
   context?: {
@@ -16,7 +17,7 @@ interface InquiryListProps {
   showSearch?: boolean;
 }
 
-export default function InquiryList({ inquiries, currentUser, context, showSearch = false }: InquiryListProps) {
+export default function InquiryList({ cohortId, inquiries, currentUser, context, showSearch = false }: InquiryListProps) {
   const [filter, setFilter] = useState<"all" | "pending" | "resolved" | "mine">("all");
   
   const searchParams = useSearchParams();
@@ -24,15 +25,6 @@ export default function InquiryList({ inquiries, currentUser, context, showSearc
   const { replace } = useRouter();
   
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search")?.toString() || "");
-
-  // Update local state when URL changes (external navigation)
-  useEffect(() => {
-      // Only update if the value is different to avoid cursor jumping if we were typing
-      const urlSearch = searchParams.get("search")?.toString() || "";
-      if (urlSearch !== searchTerm) {
-        setSearchTerm(urlSearch);
-      }
-  }, [searchParams]);
 
   // Debounce search update
   useEffect(() => {
@@ -60,6 +52,7 @@ export default function InquiryList({ inquiries, currentUser, context, showSearc
 
   let newInquiryHref = "/inquiries/new";
   const params = new URLSearchParams();
+  params.set("cohortId", cohortId);
   if (context?.classId) params.set("classId", context.classId);
   if (context?.assignmentId) params.set("assignmentId", context.assignmentId);
   const queryString = params.toString();

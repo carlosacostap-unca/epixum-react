@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import FormattedDate from "@/components/FormattedDate";
 import { getCurrentUser } from "@/lib/pocketbase-server";
 import SprintDetailsManagement from "@/components/SprintDetailsManagement";
+import { resolveCohortContext } from "@/lib/cohort-context";
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,8 @@ export default async function SprintPage({ params }: { params: Promise<{ id: str
     notFound();
   }
 
-  const isAuthorized = user && (user.role === 'docente' || user.role === 'admin');
+  const context = await resolveCohortContext(sprint.cohort);
+  const isAuthorized = context.permissions.has('manage-academics');
   
   const status = review?.status || 'Pendiente';
   let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
@@ -46,7 +48,7 @@ export default async function SprintPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="container mx-auto p-8 min-h-screen">
-      <Link href="/sprints" className="text-blue-500 hover:underline mb-8 inline-block">&larr; Volver a sprints</Link>
+      <Link href={`/cohorts/${sprint.cohort}/sprints`} className="text-blue-500 hover:underline mb-8 inline-block">&larr; Volver a sprints</Link>
       
       <header className="mb-12">
         <div className="flex items-center gap-4 mb-2">
@@ -75,11 +77,11 @@ export default async function SprintPage({ params }: { params: Promise<{ id: str
       </header>
 
       {isAuthorized ? (
-        <SprintDetailsManagement 
-          user={user} 
-          sprintId={sprint.id} 
-          classes={classes} 
-          assignments={assignments} 
+        <SprintDetailsManagement
+          user={context.user}
+          sprintId={sprint.id}
+          classes={classes}
+          assignments={assignments}
         />
       ) : (
         <div className="space-y-4">

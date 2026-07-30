@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/lib/pocketbase-server";
 import ClassDetailsManagement from "@/components/ClassDetailsManagement";
 import { getInquiries } from "@/lib/actions-inquiries";
 import InquiryList from "@/components/inquiries/InquiryList";
+import { resolveCohortContext, resolveRecordCohortId } from "@/lib/cohort-context";
+import { createServerClient } from "@/lib/pocketbase-server";
 
 export const dynamic = 'force-dynamic';
 
@@ -15,22 +17,25 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
   let classData: Class;
   let links: LinkType[] = [];
   let inquiries: Inquiry[] = [];
+  let cohortId = '';
   const user = await getCurrentUser();
   
   try {
     classData = await getClass(id);
     links = await getLinks(id);
-    inquiries = await getInquiries({ classId: id });
+    cohortId = await resolveRecordCohortId(await createServerClient(), 'classes', id);
+    inquiries = await getInquiries(cohortId, { classId: id });
   } catch (e) {
     console.error(e);
     return notFound();
   }
 
-  const isAuthorized = user && (user.role === 'docente' || user.role === 'admin');
+  const context = await resolveCohortContext(cohortId);
+  const isAuthorized = context.permissions.has('manage-academics');
 
   if (isAuthorized) {
     return <div className="container mx-auto p-8 min-h-screen">
-      <ClassDetailsManagement user={user} classData={classData} links={links} inquiries={inquiries} />
+      <ClassDetailsManagement cohortId={cohortId} user={context.user} classData={classData} links={links} inquiries={inquiries} />
     </div>;
   }
 
@@ -88,7 +93,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
 
       <div className="space-y-6">
         <h2 className="text-2xl font-bold mb-4">Consultas</h2>
-        <InquiryList inquiries={inquiries} currentUser={user} context={{ classId: id }} />
+        <InquiryList cohortId={cohortId} inquiries={inquiries} currentUser={user} context={{ classId: id }} />
       </div>
     </div>
   );

@@ -10,13 +10,14 @@ import LinkForm from "./LinkForm";
 import InquiryList from "./inquiries/InquiryList";
 
 interface AssignmentDetailsManagementProps {
+  cohortId: string;
   user: User;
   assignment: Assignment;
   links: LinkType[];
   inquiries: Inquiry[];
 }
 
-export default function AssignmentDetailsManagement({ user, assignment, links, inquiries }: AssignmentDetailsManagementProps) {
+export default function AssignmentDetailsManagement({ cohortId, user, assignment, links, inquiries }: AssignmentDetailsManagementProps) {
   const [isEditingAssignment, setIsEditingAssignment] = useState(false);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [editingLink, setEditingLink] = useState<LinkType | null>(null);
@@ -125,7 +126,7 @@ export default function AssignmentDetailsManagement({ user, assignment, links, i
 
       <div className="space-y-6 mt-12">
         <h2 className="text-2xl font-bold mb-4">Consultas</h2>
-        <InquiryList inquiries={inquiries} currentUser={user} context={{ assignmentId: assignment.id }} />
+        <InquiryList cohortId={cohortId} inquiries={inquiries} currentUser={user} context={{ assignmentId: assignment.id }} />
       </div>
 
       {/* Modals */}

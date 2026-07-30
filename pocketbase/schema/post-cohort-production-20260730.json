@@ -1,0 +1,1395 @@
+{
+  "formatVersion": 1,
+  "pocketbaseUrl": "https://pocketbase-react.epixum.com",
+  "collections": [
+    {
+      "id": "pbc_4275539003",
+      "name": "_authOrigins",
+      "type": "base",
+      "system": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "collectionRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "recordRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "fingerprint",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_authOrigins_unique_pairs` ON `_authOrigins` (collectionRef, recordRef, fingerprint)"
+      ],
+      "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+    },
+    {
+      "id": "pbc_2281828961",
+      "name": "_externalAuths",
+      "type": "base",
+      "system": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "collectionRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "recordRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "provider",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "providerId",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_externalAuths_record_provider` ON `_externalAuths` (collectionRef, recordRef, provider)",
+        "CREATE UNIQUE INDEX `idx_externalAuths_collection_provider` ON `_externalAuths` (collectionRef, provider, providerId)"
+      ],
+      "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+    },
+    {
+      "id": "pbc_2279338944",
+      "name": "_mfas",
+      "type": "base",
+      "system": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "collectionRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "recordRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "method",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_mfas_collectionRef_recordRef` ON `_mfas` (collectionRef,recordRef)"
+      ],
+      "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null
+    },
+    {
+      "id": "pbc_1638494021",
+      "name": "_otps",
+      "type": "base",
+      "system": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "collectionRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "recordRef",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "password",
+          "type": "password",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "sentTo",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_otps_collectionRef_recordRef` ON `_otps` (collectionRef, recordRef)"
+      ],
+      "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null
+    },
+    {
+      "id": "pbc_3142635823",
+      "name": "_superusers",
+      "type": "auth",
+      "system": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "password",
+          "type": "password",
+          "required": true,
+          "presentable": false,
+          "min": 8,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "tokenKey",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 30,
+          "max": 60,
+          "pattern": ""
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "required": true,
+          "presentable": false
+        },
+        {
+          "name": "emailVisibility",
+          "type": "bool",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "verified",
+          "type": "bool",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_tokenKey_pbc_3142635823` ON `_superusers` (`tokenKey`)",
+        "CREATE UNIQUE INDEX `idx_email_pbc_3142635823` ON `_superusers` (`email`) WHERE `email` != ''"
+      ],
+      "listRule": null,
+      "viewRule": null,
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null
+    },
+    {
+      "id": "pbc_3229316009",
+      "name": "assignments",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "description",
+          "type": "editor",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "sprint",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3753318043",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "deleteRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))"
+    },
+    {
+      "id": "pbc_2478702895",
+      "name": "classes",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "sprint",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3753318043",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "required": false,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "deleteRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))"
+    },
+    {
+      "id": "pbc_1357820144",
+      "name": "cohorts",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "course",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_955655590",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 200,
+          "pattern": ""
+        },
+        {
+          "name": "startDate",
+          "type": "date",
+          "required": true,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "endDate",
+          "type": "date",
+          "required": true,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "planned",
+            "active",
+            "archived"
+          ]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_cohorts_course_name` ON `cohorts` (`course`, `name`)"
+      ],
+      "listRule": "@request.auth.role = \"admin\" || (@collection.enrollments.cohort ?= id && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\")",
+      "viewRule": "@request.auth.role = \"admin\" || (@collection.enrollments.cohort ?= id && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\")",
+      "createRule": "@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @request.body.status = \"planned\")",
+      "updateRule": "@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && status != \"archived\" && (@collection.enrollments.cohort ?= id && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && (@request.body.status:changed = false || (status = \"planned\" && @request.body.status = \"active\") || (@request.body.status = \"archived\" && @request.body.course:changed = false && @request.body.name:changed = false && @request.body.startDate:changed = false && @request.body.endDate:changed = false)))",
+      "deleteRule": "@request.auth.role = \"admin\""
+    },
+    {
+      "id": "pbc_955655590",
+      "name": "courses",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 200,
+          "pattern": ""
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 5000,
+          "pattern": ""
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "active",
+            "archived"
+          ]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_courses_name` ON `courses` (`name`)"
+      ],
+      "listRule": "@request.auth.id != \"\"",
+      "viewRule": "@request.auth.id != \"\"",
+      "createRule": "@request.auth.role = \"admin\"",
+      "updateRule": "@request.auth.role = \"admin\"",
+      "deleteRule": "@request.auth.role = \"admin\""
+    },
+    {
+      "id": "pbc_2444735992",
+      "name": "deliveries",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "assignment",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3229316009",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "student",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "repositoryUrl",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_4MCmtI5lzL` ON `deliveries` (\n  `assignment`,\n  `student`\n)"
+      ],
+      "listRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && student = @request.auth.id))",
+      "viewRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && student = @request.auth.id))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"estudiante\" && (@request.auth.id != \"\" && @collection.enrollments.cohort ?= @request.body.assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && @request.body.student = @request.auth.id))",
+      "updateRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"estudiante\" && (@request.auth.id != \"\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && student = @request.auth.id && @request.body.assignment:changed = false && @request.body.student:changed = false))",
+      "deleteRule": "@request.auth.role = \"admin\""
+    },
+    {
+      "id": "pbc_1009377862",
+      "name": "enrollments",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "cohort",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_1357820144",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "required": true,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "student",
+            "teacher"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "active",
+            "inactive"
+          ]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_enrollments_cohort_user` ON `enrollments` (`cohort`, `user`)"
+      ],
+      "listRule": "@request.auth.role = \"admin\" || user = @request.auth.id || (@request.auth.role = \"docente\" && @collection.enrollments:manager.cohort ?= cohort && @collection.enrollments:manager.user ?= @request.auth.id && @collection.enrollments:manager.role ?= \"teacher\" && @collection.enrollments:manager.status ?= \"active\")",
+      "viewRule": "@request.auth.role = \"admin\" || user = @request.auth.id || (@request.auth.role = \"docente\" && @collection.enrollments:manager.cohort ?= cohort && @collection.enrollments:manager.user ?= @request.auth.id && @collection.enrollments:manager.role ?= \"teacher\" && @collection.enrollments:manager.status ?= \"active\")",
+      "createRule": "@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @request.body.role = \"student\" && @request.body.status = \"active\" && @request.body.user.role = \"estudiante\" && @collection.enrollments:manager.cohort ?= @request.body.cohort && @collection.enrollments:manager.user ?= @request.auth.id && @collection.enrollments:manager.role ?= \"teacher\" && @collection.enrollments:manager.status ?= \"active\")",
+      "updateRule": "@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && role = \"student\" && user.role = \"estudiante\" && @request.body.cohort:changed = false && @request.body.user:changed = false && @request.body.role:changed = false && @collection.enrollments:manager.cohort ?= cohort && @collection.enrollments:manager.user ?= @request.auth.id && @collection.enrollments:manager.role ?= \"teacher\" && @collection.enrollments:manager.status ?= \"active\")",
+      "deleteRule": "@request.auth.role = \"admin\""
+    },
+    {
+      "id": "pbc_1709638221",
+      "name": "inquiries",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "Pendiente",
+            "Resuelta"
+          ]
+        },
+        {
+          "name": "author",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "class",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_2478702895",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "assignment",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3229316009",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "cohort",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_1357820144",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_inquiries_cohort` ON `inquiries` (`cohort`)"
+      ],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= @request.body.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && author = @request.auth.id && @request.body.author:changed = false && @request.body.cohort:changed = false))",
+      "deleteRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && author = @request.auth.id))"
+    },
+    {
+      "id": "pbc_3588843627",
+      "name": "inquiry_responses",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "inquiry",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_1709638221",
+          "cascadeDelete": true,
+          "maxSelect": 1
+        },
+        {
+          "name": "author",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "((@request.auth.id != \"\" && @collection.enrollments.cohort ?= @request.body.inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && @request.body.author = @request.auth.id)",
+      "updateRule": "(@request.auth.role = \"admin\" || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && author = @request.auth.id && @request.body.author:changed = false && @request.body.inquiry:changed = false))",
+      "deleteRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= inquiry.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && author = @request.auth.id))"
+    },
+    {
+      "id": "pbc_449060851",
+      "name": "links",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "url",
+          "type": "url",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "class",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_2478702895",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "assignment",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3229316009",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "(@request.auth.role = \"admin\" || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= class.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\")))",
+      "viewRule": "(@request.auth.role = \"admin\" || ((@request.auth.id != \"\" && @collection.enrollments.cohort ?= class.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\")))",
+      "createRule": "(@request.auth.role = \"admin\" || ((@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.class.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\") || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")))",
+      "updateRule": "(@request.auth.role = \"admin\" || ((@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= class.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\") || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")))",
+      "deleteRule": "(@request.auth.role = \"admin\" || ((@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= class.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\") || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= assignment.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")))"
+    },
+    {
+      "id": "pbc_2605467279",
+      "name": "messages",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "team",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_1568971955",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "sender",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "(@collection.teams.id ?= team && @collection.teams.members ?~ @request.auth.id) || @request.auth.role = 'docente'",
+      "viewRule": "(@collection.teams.id ?= team && @collection.teams.members ?~ @request.auth.id) || @request.auth.role = 'docente'",
+      "createRule": "(@collection.teams.id ?= team && @collection.teams.members ?~ @request.auth.id) || @request.auth.role = 'docente'",
+      "updateRule": "@request.auth.role = \"admin\"",
+      "deleteRule": "@request.auth.role = \"admin\""
+    },
+    {
+      "id": "pbc_172606212",
+      "name": "review_private_notes",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "review",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_4163081445",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 20000,
+          "pattern": ""
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_review_private_notes_review` ON `review_private_notes` (`review`)"
+      ],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= review.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= review.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.review.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= review.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "deleteRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= review.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))"
+    },
+    {
+      "id": "pbc_4163081445",
+      "name": "reviews",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "sprint",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "pbc_3753318043",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "teacher",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "student",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "startTime",
+          "type": "date",
+          "required": false,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "endTime",
+          "type": "date",
+          "required": false,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "public_note",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "Aprobado",
+            "Pendiente",
+            "No presentó",
+            "Desaprobado"
+          ]
+        },
+        {
+          "name": "meetingLink",
+          "type": "url",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "roomNumber",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_reviews_sprint_student` ON `reviews` (`sprint`, `student`) WHERE `student` != ''"
+      ],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "((@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\")) || (@request.auth.role = \"estudiante\" && (@request.auth.id != \"\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\") && @request.body.sprint:changed = false && @request.body.teacher:changed = false && @request.body.startTime:changed = false && @request.body.endTime:changed = false && @request.body.public_note:changed = false && @request.body.status:changed = false && @request.body.meetingLink:changed = false && @request.body.roomNumber:changed = false && ((student = \"\" && @request.body.student = @request.auth.id) || (student = @request.auth.id && @request.body.student = \"\"))))",
+      "deleteRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= sprint.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))"
+    },
+    {
+      "id": "pbc_3753318043",
+      "name": "sprints",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "startDate",
+          "type": "date",
+          "required": false,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "endDate",
+          "type": "date",
+          "required": false,
+          "presentable": false,
+          "min": "",
+          "max": ""
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "cohort",
+          "type": "relation",
+          "required": true,
+          "presentable": false,
+          "collectionId": "pbc_1357820144",
+          "cascadeDelete": false,
+          "maxSelect": 1
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_sprints_cohort` ON `sprints` (`cohort`)"
+      ],
+      "listRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "viewRule": "(@request.auth.role = \"admin\" || (@request.auth.id != \"\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.status ?= \"active\"))",
+      "createRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= @request.body.cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "updateRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))",
+      "deleteRule": "(@request.auth.role = \"admin\" || (@request.auth.role = \"docente\" && @collection.enrollments.cohort ?= cohort && @collection.enrollments.user ?= @request.auth.id && @collection.enrollments.role ?= \"teacher\" && @collection.enrollments.status ?= \"active\"))"
+    },
+    {
+      "id": "pbc_1568971955",
+      "name": "teams",
+      "type": "base",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 0,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "members",
+          "type": "relation",
+          "required": false,
+          "presentable": false,
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "maxSelect": 999
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [],
+      "listRule": "@request.auth.id != \"\"",
+      "viewRule": "@request.auth.id != \"\"",
+      "createRule": "@request.auth.role = 'admin' || @request.auth.role = 'docente'",
+      "updateRule": "@request.auth.role = 'admin' || @request.auth.role = 'docente'",
+      "deleteRule": "@request.auth.role = 'admin' || @request.auth.role = 'docente'"
+    },
+    {
+      "id": "_pb_users_auth_",
+      "name": "users",
+      "type": "auth",
+      "system": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 15,
+          "max": 15,
+          "pattern": "^[a-z0-9]+$"
+        },
+        {
+          "name": "password",
+          "type": "password",
+          "required": true,
+          "presentable": false,
+          "min": 8,
+          "max": 0,
+          "pattern": ""
+        },
+        {
+          "name": "tokenKey",
+          "type": "text",
+          "required": true,
+          "presentable": false,
+          "min": 30,
+          "max": 60,
+          "pattern": ""
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "required": true,
+          "presentable": false
+        },
+        {
+          "name": "emailVisibility",
+          "type": "bool",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "verified",
+          "type": "bool",
+          "required": false,
+          "presentable": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": false,
+          "presentable": false,
+          "min": 0,
+          "max": 255,
+          "pattern": ""
+        },
+        {
+          "name": "avatar",
+          "type": "file",
+          "required": false,
+          "presentable": false,
+          "maxSelect": 1
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "required": false,
+          "presentable": false,
+          "maxSelect": 1,
+          "values": [
+            "admin",
+            "docente",
+            "estudiante"
+          ]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "presentable": false
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "presentable": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
+        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+      ],
+      "listRule": "@request.auth.id != \"\"",
+      "viewRule": "@request.auth.id != \"\"",
+      "createRule": "",
+      "updateRule": "(id = @request.auth.id && (@request.body.role:isset = false || @request.body.role = \"estudiante\")) || @request.auth.role = \"admin\"",
+      "deleteRule": "id = @request.auth.id || @request.auth.role = \"admin\""
+    }
+  ]
+}

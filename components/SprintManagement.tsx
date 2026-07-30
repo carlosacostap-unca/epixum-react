@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 interface SprintManagementProps {
   user: User;
   sprints: Sprint[];
+  cohortId: string;
 }
 
-export default function SprintManagement({ user, sprints }: SprintManagementProps) {
+export default function SprintManagement({ user, sprints, cohortId }: SprintManagementProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
   const router = useRouter();
@@ -44,14 +45,14 @@ export default function SprintManagement({ user, sprints }: SprintManagementProp
       {/* Modal for Creating */}
       {isCreating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <SprintForm onClose={() => setIsCreating(false)} />
+          <SprintForm cohortId={cohortId} onClose={() => setIsCreating(false)} />
         </div>
       )}
 
       {/* Modal for Editing */}
       {editingSprint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <SprintForm sprint={editingSprint} onClose={() => setEditingSprint(null)} />
+          <SprintForm cohortId={cohortId} sprint={editingSprint} onClose={() => setEditingSprint(null)} />
         </div>
       )}
 

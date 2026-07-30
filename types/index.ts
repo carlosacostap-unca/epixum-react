@@ -7,6 +7,8 @@ export interface BaseModel {
 }
 
 export type UserRole = 'admin' | 'docente' | 'estudiante';
+export type CohortRole = 'student' | 'teacher';
+export type LifecycleStatus = 'planned' | 'active' | 'archived';
 
 export interface User extends BaseModel {
   username: string;
@@ -42,7 +44,8 @@ export interface Class extends BaseModel {
 export interface Sprint extends BaseModel {
   title: string;
   description: string;
-  course: string; // Relation to Course ID (if multiple courses)
+  course?: string; // Legacy relation, if present
+  cohort: string;
   startDate: string;
   endDate: string;
   // Expanding relations
@@ -73,12 +76,31 @@ export interface Delivery extends BaseModel {
 }
 
 export interface Course extends BaseModel {
-  title: string;
+  name: string;
   description: string;
-  // Expanding relations
-  expand?: {
-    sprints?: Sprint[];
-  };
+  status: 'active' | 'archived';
+}
+
+export interface Cohort extends BaseModel {
+  course: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: LifecycleStatus;
+  expand?: { course?: Course };
+}
+
+export interface Enrollment extends BaseModel {
+  cohort: string;
+  user: string;
+  role: CohortRole;
+  status: 'active' | 'inactive';
+  expand?: { cohort?: Cohort; user?: User };
+}
+
+export interface ReviewPrivateNote extends BaseModel {
+  review: string;
+  content: string;
 }
 
 export interface Review extends BaseModel {
@@ -87,7 +109,7 @@ export interface Review extends BaseModel {
   student?: string; // Relation to User ID (student), optional (null if available)
   startTime: string; // ISO Date string
   endTime: string; // ISO Date string
-  private_note?: string; // Note only for teachers
+  privateNote?: string; // App-only value loaded from protected review_private_notes storage
   public_note?: string;  // Feedback visible to the student
   meetingLink?: string; // Zoom/Meet link
   roomNumber?: string; // Physical or virtual room number
@@ -106,6 +128,7 @@ export interface Inquiry extends BaseModel {
   author: string; // Relation to User ID
   class?: string; // Relation to Class ID (optional)
   assignment?: string; // Relation to Assignment ID (optional)
+  cohort: string;
   expand?: {
     author?: User;
     class?: Class;

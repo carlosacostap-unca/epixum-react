@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pocketbase": {
+      "command": "npm.cmd",
+      "args": ["run", "--silent", "mcp:pocketbase"]
+    }
+  }
+}

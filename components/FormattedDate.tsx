@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 interface FormattedDateProps {
   date: string;
   options?: Intl.DateTimeFormatOptions;
@@ -10,12 +8,8 @@ interface FormattedDateProps {
 }
 
 export default function FormattedDate({ date, options, className = "", showTime = false }: FormattedDateProps) {
-  const [formattedDate, setFormattedDate] = useState<string>("");
-
-  useEffect(() => {
-    if (!date) return;
-
-    const dateObj = new Date(date);
+  if (!date) return null;
+  const dateObj = new Date(date);
     
     // Default options if none provided
     const defaultOptions: Intl.DateTimeFormatOptions = showTime 
@@ -33,16 +27,8 @@ export default function FormattedDate({ date, options, className = "", showTime 
           day: 'numeric' 
         };
 
-    const finalOptions = options || defaultOptions;
-    
-    // Use the browser's locale and timezone
-    setFormattedDate(dateObj.toLocaleString(undefined, finalOptions));
-  }, [date, options, showTime]);
+  const finalOptions = options || defaultOptions;
+  const formattedDate = dateObj.toLocaleString(undefined, finalOptions);
 
-  // Render a placeholder or nothing to avoid hydration mismatch
-  if (!formattedDate) {
-    return <span className={`opacity-0 ${className}`}>...</span>;
-  }
-
-  return <span className={className}>{formattedDate}</span>;
+  return <span className={className} suppressHydrationWarning>{formattedDate}</span>;
 }

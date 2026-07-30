@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface SprintFormProps {
+  cohortId: string;
   sprint?: Sprint;
   onClose?: () => void;
 }
 
-export default function SprintForm({ sprint, onClose }: SprintFormProps) {
+export default function SprintForm({ cohortId, sprint, onClose }: SprintFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function SprintForm({ sprint, onClose }: SprintFormProps) {
       } else {
         setError(result.error || "Ocurrió un error");
       }
-    } catch (e) {
+    } catch {
       setError("Ocurrió un error inesperado");
     } finally {
       setLoading(false);
@@ -52,6 +53,7 @@ export default function SprintForm({ sprint, onClose }: SprintFormProps) {
       )}
 
       <form action={handleSubmit} className="space-y-4">
+        <input type="hidden" name="cohortId" value={cohortId} />
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
             Título

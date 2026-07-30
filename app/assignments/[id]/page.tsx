@@ -8,6 +8,8 @@ import StudentDelivery from "@/components/StudentDelivery";
 import TeacherDeliveries from "@/components/TeacherDeliveries";
 import { getInquiries } from "@/lib/actions-inquiries";
 import InquiryList from "@/components/inquiries/InquiryList";
+import { resolveCohortContext, resolveRecordCohortId } from "@/lib/cohort-context";
+import { createServerClient } from "@/lib/pocketbase-server";
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +18,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
   let assignment: Assignment;
   let links: LinkType[] = [];
   let inquiries: Inquiry[] = [];
+  let cohortId = '';
   const user = await getCurrentUser();
   let deliveries: Delivery[] = [];
   let userDelivery: Delivery | null = null;
@@ -23,7 +26,8 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
   try {
     assignment = await getAssignment(id);
     links = await getLinks(id, 'assignment');
-    inquiries = await getInquiries({ assignmentId: id });
+    cohortId = await resolveRecordCohortId(await createServerClient(), 'assignments', id);
+    inquiries = await getInquiries(cohortId, { assignmentId: id });
     
     if (user) {
         if (user.role === 'docente' || user.role === 'admin') {
@@ -37,12 +41,13 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
     return notFound();
   }
 
-  const isAuthorized = user && (user.role === 'docente' || user.role === 'admin');
+  const context = await resolveCohortContext(cohortId);
+  const isAuthorized = context.permissions.has('manage-academics');
 
   if (isAuthorized) {
     return (
         <div className="container mx-auto p-8 min-h-screen space-y-8">
-            <AssignmentDetailsManagement user={user} assignment={assignment} links={links} inquiries={inquiries} />
+            <AssignmentDetailsManagement cohortId={cohortId} user={context.user} assignment={assignment} links={links} inquiries={inquiries} />
             <TeacherDeliveries deliveries={deliveries} assignmentId={assignment.id} />
         </div>
     );
@@ -103,7 +108,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
 
       <div className="space-y-6 mb-12">
         <h2 className="text-2xl font-bold mb-4">Consultas</h2>
-        <InquiryList inquiries={inquiries} currentUser={user} context={{ assignmentId: id }} />
+        <InquiryList cohortId={cohortId} inquiries={inquiries} currentUser={user} context={{ assignmentId: id }} />
       </div>
 
       {user && user.role === 'estudiante' && (

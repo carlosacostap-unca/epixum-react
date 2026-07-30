@@ -3,6 +3,7 @@ import { Sprint } from "@/types";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/pocketbase-server";
 import FormattedDate from "@/components/FormattedDate";
+import { getDefaultAccessibleCohort } from "@/lib/data-cohorts";
 
 export const dynamic = 'force-dynamic';
 
@@ -108,7 +109,8 @@ export default async function Home() {
   let error = null;
 
   try {
-    sprints = await getSprints();
+    const cohort = await getDefaultAccessibleCohort();
+    sprints = cohort ? await getSprints(cohort.id) : [];
   } catch (e) {
     console.error("Error fetching sprints:", e);
     error = "No se pudieron cargar los sprints. Asegúrate de que la colección 'sprints' exista y sea pública.";

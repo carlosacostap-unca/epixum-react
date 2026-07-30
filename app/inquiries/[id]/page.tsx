@@ -26,9 +26,9 @@ export default async function InquiryDetailPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto p-8 min-h-screen max-w-4xl">
-      <Link href="/inquiries" className="text-sm text-blue-600 hover:underline mb-6 inline-block">&larr; Volver a consultas</Link>
+      <Link href={`/cohorts/${inquiry.cohort}/inquiries`} className="text-sm text-blue-600 hover:underline mb-6 inline-block">&larr; Volver a consultas</Link>
       
-      <InquiryDetailsHeader inquiry={inquiry} currentUser={user} />
+      <InquiryDetailsHeader inquiry={inquiry} currentUser={user} canModerate={inquiryResult.canManage === true} readOnly={inquiryResult.readOnly === true} />
 
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -42,7 +42,7 @@ export default async function InquiryDetailPage({ params }: PageProps) {
             inquiryId={inquiry.id} 
         />
 
-        {user && (
+        {user && !inquiryResult.readOnly && (
             <InquiryResponseForm inquiryId={inquiry.id} />
         )}
       </div>

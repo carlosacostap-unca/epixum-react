@@ -1,73 +1,27 @@
 import { createServerClient } from './pocketbase-server';
-import { Sprint, Class, Link, Assignment, User, Delivery, Review } from '@/types';
-import { unstable_cache } from 'next/cache';
+import { Sprint, Class, Link, Assignment, User, Delivery, Review, Enrollment, ReviewPrivateNote } from '@/types';
 import { cache } from 'react';
-import PocketBase from 'pocketbase';
-import { cookies } from 'next/headers';
-
-// Helper to create client with token for cached functions
-const createClientWithToken = (token: string | undefined) => {
-    const url = process.env['NEXT_PUBLIC_POCKETBASE_URL'];
-    if (!url) {
-        console.error("CRITICAL ERROR: NEXT_PUBLIC_POCKETBASE_URL is not set");
-    }
-    const pb = new PocketBase(url);
-    // Disable autoCancellation to avoid issues in cached context
-    pb.autoCancellation(false);
-    if (token) {
-        pb.authStore.loadFromCookie(`pb_auth=${token}`);
-    }
-    return pb;
-};
-
-// Cached fetchers using unstable_cache (Data Cache)
-// Caches results per user (token) for a short duration to prevent 429 errors
-const getSprintsCached = unstable_cache(
-    async (token: string | undefined) => {
-        const pb = createClientWithToken(token);
-        const result = await pb.collection('sprints').getList<Sprint>(1, 50, {
-            sort: 'created',
-        });
-        return result.items;
-    },
-    ['sprints-list'],
-    { revalidate: 30, tags: ['sprints'] }
-);
-
-const getUsersCached = unstable_cache(
-    async (token: string | undefined) => {
-        const pb = createClientWithToken(token);
-        return await pb.collection('users').getFullList<User>({
-            sort: 'created',
-        });
-    },
-    ['users-list'],
-    { revalidate: 60, tags: ['users'] }
-);
-
-const getStudentsCached = unstable_cache(
-    async (token: string | undefined) => {
-        const pb = createClientWithToken(token);
-        return await pb.collection('users').getFullList<User>({
-            filter: 'role = "estudiante"',
-            sort: 'name',
-        });
-    },
-    ['students-list'],
-    { revalidate: 60, tags: ['users'] }
-);
+import { authorizeRecord, resolveCohortContext } from './cohort-context';
+import { attachPrivateReviewNotes, withoutPrivateReviewFields } from './review-privacy';
 
 // Exported functions with request memoization (React.cache)
 
-export const getReviews = cache(async (sprintId: string) => {
+export const getReviews = cache(async (cohortId: string, sprintId: string) => {
+  const context = await resolveCohortContext(cohortId);
   const pb = await createServerClient();
   try {
     const records = await pb.collection('reviews').getFullList<Review>({
-      filter: `sprint = "${sprintId}"`,
+      filter: pb.filter('sprint = {:sprint} && sprint.cohort = {:cohort}', { sprint: sprintId, cohort: cohortId }),
       sort: 'startTime',
       expand: 'teacher,student',
     });
-    return records;
+    if (!context.permissions.has('manage-academics') || records.length === 0) {
+      return records.map(withoutPrivateReviewFields);
+    }
+    const notes = await pb.collection('review_private_notes').getFullList<ReviewPrivateNote>({
+      filter: records.map((review) => pb.filter('review = {:review}', { review: review.id })).join(' || '),
+    });
+    return attachPrivateReviewNotes(records, notes);
   } catch (error) {
     console.error('Error fetching reviews:', error);
     return [];
@@ -75,37 +29,41 @@ export const getReviews = cache(async (sprintId: string) => {
 });
 
 export const getUserReview = cache(async (sprintId: string, userId: string) => {
-  const pb = await createServerClient();
   try {
+    const { pb } = await authorizeRecord('sprints', sprintId);
     const record = await pb.collection('reviews').getFirstListItem<Review>(
       `sprint = "${sprintId}" && student = "${userId}"`,
       { expand: 'teacher,student' }
     );
-    return record;
-  } catch (error) {
+    return withoutPrivateReviewFields(record);
+  } catch {
     return null;
   }
 });
 
-export const getUserReviews = cache(async (userId: string) => {
+export const getUserReviews = cache(async (cohortId: string, userId: string) => {
+  await resolveCohortContext(cohortId);
   const pb = await createServerClient();
   try {
     const records = await pb.collection('reviews').getFullList<Review>({
-      filter: `student = "${userId}"`,
+      filter: pb.filter('student = {:user} && sprint.cohort = {:cohort}', { user: userId, cohort: cohortId }),
       sort: '-created',
     });
-    return records;
+    return records.map(withoutPrivateReviewFields);
   } catch (error) {
     console.error('Error fetching user reviews:', error);
     return [];
   }
 });
 
-export const getSprints = cache(async () => {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('pb_auth')?.value;
+export const getSprints = cache(async (cohortId: string) => {
+    const pb = await createServerClient();
+    await resolveCohortContext(cohortId, pb);
     try {
-        return await getSprintsCached(token);
+        return await pb.collection('sprints').getFullList<Sprint>({
+            filter: `cohort = "${cohortId}"`,
+            sort: 'created',
+        });
     } catch (error) {
         console.error('Error fetching sprints:', error);
         throw error;
@@ -113,20 +71,23 @@ export const getSprints = cache(async () => {
 });
 
 export const getUsers = cache(async () => {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('pb_auth')?.value;
-    return getUsersCached(token);
+    const pb = await createServerClient();
+    return pb.collection('users').getFullList<User>({ sort: 'created' });
 });
 
-export const getStudents = cache(async () => {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('pb_auth')?.value;
-    return getStudentsCached(token);
+export const getStudents = cache(async (cohortId: string) => {
+    const pb = await createServerClient();
+    await resolveCohortContext(cohortId, pb);
+    const enrollments = await pb.collection('enrollments').getFullList<Enrollment>({
+        filter: `cohort = "${cohortId}" && role = "student" && status = "active"`,
+        expand: 'user',
+    });
+    return enrollments.flatMap((enrollment) => enrollment.expand?.user ? [enrollment.expand.user] : []);
 });
 
 export const getSprint = cache(async (id: string) => {
-  const pb = await createServerClient();
   try {
+    const { pb } = await authorizeRecord('sprints', id);
     const record = await pb.collection('sprints').getOne<Sprint>(id, {
         expand: 'classes',
     });
@@ -137,9 +98,11 @@ export const getSprint = cache(async (id: string) => {
   }
 });
 
-export async function getAllClasses() {
+export async function getAllClasses(cohortId: string) {
+    await resolveCohortContext(cohortId);
     const pb = await createServerClient();
     const records = await pb.collection('classes').getFullList<Class>({
+        filter: pb.filter('sprint.cohort = {:cohort}', { cohort: cohortId }),
         sort: 'created',
         expand: 'sprint',
     });
@@ -147,7 +110,7 @@ export async function getAllClasses() {
 }
 
 export async function getClasses(sprintId: string) {
-    const pb = await createServerClient();
+    const { pb } = await authorizeRecord('sprints', sprintId);
     const records = await pb.collection('classes').getFullList<Class>({
         filter: `sprint = "${sprintId}"`,
         sort: 'created',
@@ -156,14 +119,16 @@ export async function getClasses(sprintId: string) {
 }
 
 export async function getClass(id: string) {
-  const pb = await createServerClient();
+  const { pb } = await authorizeRecord('classes', id);
   const record = await pb.collection('classes').getOne<Class>(id);
   return record;
 }
 
-export async function getAllAssignments() {
+export async function getAllAssignments(cohortId: string) {
+  await resolveCohortContext(cohortId);
   const pb = await createServerClient();
   const records = await pb.collection('assignments').getFullList<Assignment>({
+      filter: pb.filter('sprint.cohort = {:cohort}', { cohort: cohortId }),
       sort: 'created',
       expand: 'sprint',
   });
@@ -171,7 +136,7 @@ export async function getAllAssignments() {
 }
 
 export async function getAssignments(sprintId: string) {
-  const pb = await createServerClient();
+  const { pb } = await authorizeRecord('sprints', sprintId);
   const records = await pb.collection('assignments').getFullList<Assignment>({
       filter: `sprint = "${sprintId}"`,
       sort: 'created',
@@ -180,13 +145,13 @@ export async function getAssignments(sprintId: string) {
 }
 
 export async function getAssignment(id: string) {
-  const pb = await createServerClient();
+  const { pb } = await authorizeRecord('assignments', id);
   const record = await pb.collection('assignments').getOne<Assignment>(id);
   return record;
 }
 
 export async function getLinks(parentId: string, parentType: 'class' | 'assignment' = 'class') {
-  const pb = await createServerClient();
+  const { pb } = await authorizeRecord(parentType === 'class' ? 'classes' : 'assignments', parentId);
   const records = await pb.collection('links').getFullList<Link>({
       filter: `${parentType} = "${parentId}"`,
       sort: 'created',
@@ -195,8 +160,8 @@ export async function getLinks(parentId: string, parentType: 'class' | 'assignme
 }
 
 export async function getDeliveries(assignmentId: string) {
-  const pb = await createServerClient();
   try {
+     const { pb } = await authorizeRecord('assignments', assignmentId, 'manage-academics');
      const records = await pb.collection('deliveries').getFullList<Delivery>({
          filter: `assignment = "${assignmentId}"`,
          sort: '-created',
@@ -211,13 +176,13 @@ export async function getDeliveries(assignmentId: string) {
 }
 
 export async function getUserDelivery(assignmentId: string, userId: string) {
-  const pb = await createServerClient();
   try {
+    const { pb } = await authorizeRecord('assignments', assignmentId);
     const record = await pb.collection('deliveries').getFirstListItem<Delivery>(
         `assignment = "${assignmentId}" && student = "${userId}"`
     );
     return record;
-  } catch (error) {
+  } catch {
     // It's normal to not have a delivery yet
     return null;
   }

@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/output/
+/.tmp/
 
 # next.js
 /.next/
@@ -23,6 +25,8 @@
 # misc
 .DS_Store
 *.pem
+/.tools/
+/pocketbase-test-data*/
 
 # debug
 npm-debug.log*
@@ -32,6 +36,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+
+# student source data (PII)
+/docs/*.csv
+/docs/*.xlsx
 
 # vercel
 .vercel

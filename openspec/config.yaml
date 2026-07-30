@@ -1,0 +1,33 @@
+schema: spec-driven
+
+context: |
+  Epixum - React es una plataforma educativa en español para un curso de React.
+  Stack: Next.js 16 App Router, React 19, TypeScript estricto, Tailwind CSS 4 y PocketBase.
+  Autenticación: Google OAuth mediante la colección auth `users`; sesión compartida en la cookie `pb_auth`.
+  Roles de negocio: admin, docente y estudiante. Las acciones mutables validan rol o propiedad en servidor y PocketBase conserva la autoridad final mediante API rules.
+  Dominio activo: sprints, clases, trabajos prácticos, enlaces, entregas, turnos/evaluaciones y foro de consultas.
+  `teams` y `messages` existen en PocketBase pero todavía no tienen rutas o componentes web.
+  Las páginas dinámicas usan server components; las interacciones y formularios usan client components y server actions.
+  Las especificaciones principales describen el contrato funcional esperado. Una diferencia entre una spec, el código y el esquema PocketBase activo se considera deriva que debe corregirse explícitamente.
+
+rules:
+  specs:
+    - Escribir requisitos y escenarios en español, conservando los encabezados OpenSpec Requirement y Scenario.
+    - Incluir al menos un escenario verificable por requisito.
+    - Explicitar roles, propiedad de datos y estados vacíos o de error cuando sean relevantes.
+  proposal:
+    - Identificar las capacidades afectadas y declarar fuera de alcance lo que no se modificará.
+  tasks:
+    - Incluir verificación automatizada o manual para cada grupo funcional modificado.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

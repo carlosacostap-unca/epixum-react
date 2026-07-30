@@ -12,7 +12,7 @@ interface ReviewNotesFormProps {
 export default function ReviewNotesForm({ review }: ReviewNotesFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [privateNote, setPrivateNote] = useState(review.private_note || "");
+  const [privateNote, setPrivateNote] = useState(review.privateNote || "");
   const [publicNote, setPublicNote] = useState(review.public_note || "");
   const [meetingLink, setMeetingLink] = useState(review.meetingLink || "");
   const [roomNumber, setRoomNumber] = useState(review.roomNumber || "");

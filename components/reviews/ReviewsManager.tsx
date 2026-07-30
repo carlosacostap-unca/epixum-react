@@ -11,9 +11,11 @@ interface ReviewsManagerProps {
   sprint: Sprint;
   initialReviews: Review[];
   currentUser: User;
+  canManage: boolean;
+  readOnly: boolean;
 }
 
-export default function ReviewsManager({ sprint, initialReviews, currentUser }: ReviewsManagerProps) {
+export default function ReviewsManager({ sprint, initialReviews, currentUser, canManage, readOnly }: ReviewsManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isCreating, setIsCreating] = useState(false);
@@ -27,8 +29,9 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
   const [meetingLink, setMeetingLink] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
 
-  const isTeacher = currentUser.role === "docente" || currentUser.role === "admin";
+  const isTeacher = canManage;
   const isStudent = currentUser.role === "estudiante";
+  const canBook = isStudent && !readOnly;
 
   // Check if current student has a booking
   const myBooking = isStudent ? initialReviews.find(r => r.student === currentUser.id) : null;
@@ -354,7 +357,7 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser }: 
                                         </>
                                     )}
 
-                                    {isStudent && (
+                                    {canBook && (
                                         <>
                                             {isMyBooking ? (
                                                 <>

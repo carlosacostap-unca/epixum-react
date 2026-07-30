@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createInquiry } from "@/lib/actions-inquiries";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Class, Assignment, Sprint } from "@/types";
 
 interface CreateInquiryFormProps {
+  cohortId: string;
   initialClassId?: string;
   initialAssignmentId?: string;
   classes: Class[];
@@ -14,71 +15,30 @@ interface CreateInquiryFormProps {
   sprints: Sprint[];
 }
 
-export default function CreateInquiryForm({ initialClassId, initialAssignmentId, classes, assignments, sprints }: CreateInquiryFormProps) {
+export default function CreateInquiryForm({ cohortId, initialClassId, initialAssignmentId, classes, assignments, sprints }: CreateInquiryFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedSprintId, setSelectedSprintId] = useState<string>("");
+  const initialSprintId = initialClassId
+    ? classes.find((item) => item.id === initialClassId)?.sprint
+    : assignments.find((item) => item.id === initialAssignmentId)?.sprint;
+  const [selectedSprintId, setSelectedSprintId] = useState<string>(initialSprintId ?? "");
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClassId || "");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>(initialAssignmentId || "");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Initialize Sprint if Class or Assignment is pre-selected
-  useEffect(() => {
-    if (initialClassId) {
-      const cls = classes.find(c => c.id === initialClassId);
-      if (cls) setSelectedSprintId(cls.sprint);
-    } else if (initialAssignmentId) {
-      const asg = assignments.find(a => a.id === initialAssignmentId);
-      if (asg) setSelectedSprintId(asg.sprint);
-    }
-  }, [initialClassId, initialAssignmentId, classes, assignments]);
-
-  // Reset class/assignment if sprint changes
-  useEffect(() => {
-    // Only clear if the current selection doesn't belong to the new sprint
-    // But simplified: clear if manually changed by user interaction (we can't easily distinguish here)
-    // Better UX: If I change sprint, clear class/assignment selections to avoid inconsistency
-    // However, the initial load useEffect above might conflict if we are not careful.
-    // The initial load sets sprint based on class/assignment.
-    // If I change sprint manually, I want to clear class/assignment.
-    
-    // Check if current selected class belongs to new sprint
-    if (selectedClassId) {
-      const cls = classes.find(c => c.id === selectedClassId);
-      if (cls && cls.sprint !== selectedSprintId) {
-        setSelectedClassId("");
-      }
-    }
-    
-    if (selectedAssignmentId) {
-      const asg = assignments.find(a => a.id === selectedAssignmentId);
-      if (asg && asg.sprint !== selectedSprintId) {
-        setSelectedAssignmentId("");
-      }
-    }
-  }, [selectedSprintId, classes, assignments]);
-
-  // Reset assignment if class is selected, and vice versa
-  useEffect(() => {
-    if (selectedClassId) setSelectedAssignmentId("");
-  }, [selectedClassId]);
-
-  useEffect(() => {
-    if (selectedAssignmentId) setSelectedClassId("");
-  }, [selectedAssignmentId]);
-
   const cancelHref = initialClassId 
     ? `/classes/${initialClassId}` 
     : initialAssignmentId 
       ? `/assignments/${initialAssignmentId}` 
-      : "/inquiries";
+      : `/cohorts/${cohortId}/inquiries`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     const result = await createInquiry({
+      cohortId,
       title,
       description,
       classId: selectedClassId || undefined,
@@ -126,7 +86,11 @@ export default function CreateInquiryForm({ initialClassId, initialAssignmentId,
         </label>
         <select
           value={selectedSprintId}
-          onChange={(e) => setSelectedSprintId(e.target.value)}
+          onChange={(event) => {
+            setSelectedSprintId(event.target.value);
+            setSelectedClassId("");
+            setSelectedAssignmentId("");
+          }}
           className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
         >
           <option value="">-- Seleccionar Sprint --</option>
@@ -146,7 +110,10 @@ export default function CreateInquiryForm({ initialClassId, initialAssignmentId,
           </label>
           <select
             value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
+            onChange={(event) => {
+              setSelectedClassId(event.target.value);
+              if (event.target.value) setSelectedAssignmentId("");
+            }}
             disabled={!!selectedAssignmentId || !selectedSprintId}
             className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
           >
@@ -167,7 +134,10 @@ export default function CreateInquiryForm({ initialClassId, initialAssignmentId,
           </label>
           <select
             value={selectedAssignmentId}
-            onChange={(e) => setSelectedAssignmentId(e.target.value)}
+            onChange={(event) => {
+              setSelectedAssignmentId(event.target.value);
+              if (event.target.value) setSelectedClassId("");
+            }}
             disabled={!!selectedClassId || !selectedSprintId}
             className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
           >

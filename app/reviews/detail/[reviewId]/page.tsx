@@ -26,7 +26,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   }
 
   const review = result.data;
-  const isTeacher = user.role === 'docente' || user.role === 'admin';
+  const isTeacher = result.canManage === true;
   const isStudent = user.role === 'estudiante';
   
   // Access control
@@ -36,7 +36,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
         <div className="container mx-auto p-8 text-center">
             <h1 className="text-2xl font-bold text-red-600">Acceso denegado</h1>
             <p className="mt-4">No tienes permiso para ver este turno.</p>
-            <Link href="/reviews" className="mt-8 inline-block text-blue-600 hover:underline">
+            <Link href={`/cohorts/${result.cohortId}/reviews`} className="mt-8 inline-block text-blue-600 hover:underline">
                 Volver a mis revisiones
             </Link>
         </div>

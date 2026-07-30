@@ -1,9 +1,8 @@
 "use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import { useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -11,7 +10,7 @@ interface RichTextEditorProps {
   editable?: boolean;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null;
   }
@@ -138,15 +137,6 @@ export default function RichTextEditor({ content, onChange, editable = true }: R
     },
     immediatelyRender: false, 
   });
-
-  // Update content if it changes externally (e.g. initial load)
-  useEffect(() => {
-    if (editor && content && editor.getHTML() !== content) {
-       // Only update if content is significantly different to avoid cursor jumping
-       // For simple use cases, this might be enough, but be careful with loops
-       // editor.commands.setContent(content);
-    }
-  }, [content, editor]);
 
   return (
     <div className="border border-zinc-300 dark:border-zinc-600 rounded-md overflow-hidden bg-white dark:bg-zinc-900 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">

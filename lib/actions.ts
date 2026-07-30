@@ -2,6 +2,8 @@
 
 import { createServerClient } from "@/lib/pocketbase-server";
 import { revalidatePath } from "next/cache";
+import { assertOwner, authorizeRecord, requireCohortPermission, requireWritableCohort, resolveCohortContext } from "@/lib/cohort-context";
+import { revalidateCohort } from "@/lib/cohort-cache";
 
 export async function updateUserRole(userId: string, role: string) {
   const pb = await createServerClient();
@@ -22,12 +24,10 @@ export async function updateUserRole(userId: string, role: string) {
 }
 
 export async function createSprint(formData: FormData) {
+  const cohortId = String(formData.get('cohortId') ?? '');
+  const context = await resolveCohortContext(cohortId);
+  requireCohortPermission(context, 'manage-academics');
   const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
 
   const title = formData.get('title') as string;
   const startDate = formData.get('startDate') as string;
@@ -40,11 +40,13 @@ export async function createSprint(formData: FormData) {
   try {
     const data = {
       title,
+      cohort: cohortId,
       startDate: startDate ? new Date(startDate).toISOString() : null,
       endDate: endDate ? new Date(endDate).toISOString() : null,
     };
     
     await pb.collection('sprints').create(data);
+    revalidateCohort(cohortId, 'sprints');
     revalidatePath('/');
     return { success: true };
   } catch (error) {
@@ -54,25 +56,21 @@ export async function createSprint(formData: FormData) {
 }
 
 export async function updateSprint(sprintId: string, formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('sprints', sprintId, 'manage-academics');
 
   const title = formData.get('title') as string;
   const startDate = formData.get('startDate') as string;
   const endDate = formData.get('endDate') as string;
 
   try {
-     const data: any = {
+     const data: Record<string, string> = {
       title,
     };
     if (startDate) data.startDate = new Date(startDate).toISOString();
     if (endDate) data.endDate = new Date(endDate).toISOString();
 
     await pb.collection('sprints').update(sprintId, data);
+    revalidateCohort(cohortId, 'sprints');
     revalidatePath('/');
     revalidatePath(`/sprints/${sprintId}`);
     return { success: true };
@@ -83,15 +81,11 @@ export async function updateSprint(sprintId: string, formData: FormData) {
 }
 
 export async function deleteSprint(sprintId: string) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('sprints', sprintId, 'manage-academics');
 
   try {
     await pb.collection('sprints').delete(sprintId);
+    revalidateCohort(cohortId, 'sprints');
     revalidatePath('/');
     return { success: true };
   } catch (error) {
@@ -103,13 +97,6 @@ export async function deleteSprint(sprintId: string) {
 // Classes
 
 export async function createClass(formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
-
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const sprintId = formData.get('sprintId') as string;
@@ -120,6 +107,7 @@ export async function createClass(formData: FormData) {
   }
 
   try {
+    const { pb, cohortId } = await authorizeRecord('sprints', sprintId, 'manage-academics');
     const data = {
       title,
       description,
@@ -128,6 +116,7 @@ export async function createClass(formData: FormData) {
     };
     
     await pb.collection('classes').create(data);
+    revalidateCohort(cohortId, 'sprints');
     revalidatePath(`/sprints/${sprintId}`);
     return { success: true };
   } catch (error) {
@@ -137,12 +126,7 @@ export async function createClass(formData: FormData) {
 }
 
 export async function updateClass(classId: string, formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('classes', classId, 'manage-academics');
 
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
@@ -150,13 +134,14 @@ export async function updateClass(classId: string, formData: FormData) {
   const sprintId = formData.get('sprintId') as string;
 
   try {
-    const data: any = {
+    const data: Record<string, string> = {
       title,
       description,
     };
     if (date) data.date = new Date(date).toISOString();
 
     await pb.collection('classes').update(classId, data);
+    revalidateCohort(cohortId, 'sprints');
     
     if (sprintId) revalidatePath(`/sprints/${sprintId}`);
     revalidatePath(`/classes/${classId}`);
@@ -168,15 +153,11 @@ export async function updateClass(classId: string, formData: FormData) {
 }
 
 export async function deleteClass(classId: string, sprintId?: string) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('classes', classId, 'manage-academics');
 
   try {
     await pb.collection('classes').delete(classId);
+    revalidateCohort(cohortId, 'sprints');
     if (sprintId) revalidatePath(`/sprints/${sprintId}`);
     return { success: true };
   } catch (error) {
@@ -188,13 +169,6 @@ export async function deleteClass(classId: string, sprintId?: string) {
 // Assignments
 
 export async function createAssignment(formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
-
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const sprintId = formData.get('sprintId') as string;
@@ -204,6 +178,7 @@ export async function createAssignment(formData: FormData) {
   }
 
   try {
+    const { pb, cohortId } = await authorizeRecord('sprints', sprintId, 'manage-academics');
     const data = {
       title,
       description,
@@ -211,6 +186,7 @@ export async function createAssignment(formData: FormData) {
     };
     
     await pb.collection('assignments').create(data);
+    revalidateCohort(cohortId, 'sprints');
     revalidatePath(`/sprints/${sprintId}`);
     return { success: true };
   } catch (error) {
@@ -220,12 +196,7 @@ export async function createAssignment(formData: FormData) {
 }
 
 export async function updateAssignment(assignmentId: string, formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('assignments', assignmentId, 'manage-academics');
 
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
@@ -238,6 +209,7 @@ export async function updateAssignment(assignmentId: string, formData: FormData)
     };
 
     await pb.collection('assignments').update(assignmentId, data);
+    revalidateCohort(cohortId, 'sprints');
     
     if (sprintId) revalidatePath(`/sprints/${sprintId}`);
     revalidatePath(`/assignments/${assignmentId}`);
@@ -249,15 +221,11 @@ export async function updateAssignment(assignmentId: string, formData: FormData)
 }
 
 export async function deleteAssignment(assignmentId: string, sprintId?: string) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('assignments', assignmentId, 'manage-academics');
 
   try {
     await pb.collection('assignments').delete(assignmentId);
+    revalidateCohort(cohortId, 'sprints');
     if (sprintId) revalidatePath(`/sprints/${sprintId}`);
     return { success: true };
   } catch (error) {
@@ -269,13 +237,6 @@ export async function deleteAssignment(assignmentId: string, sprintId?: string) 
 // Links
 
 export async function createLink(formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
-
   const title = formData.get('title') as string;
   const url = formData.get('url') as string;
   const classId = formData.get('classId') as string;
@@ -286,7 +247,10 @@ export async function createLink(formData: FormData) {
   }
 
   try {
-    const data: any = {
+    const parentCollection = classId ? 'classes' : 'assignments';
+    const parentId = classId || assignmentId;
+    const { pb, cohortId } = await authorizeRecord(parentCollection, parentId, 'manage-academics');
+    const data: Record<string, string> = {
       title,
       url,
     };
@@ -294,6 +258,7 @@ export async function createLink(formData: FormData) {
     if (assignmentId) data.assignment = assignmentId;
     
     await pb.collection('links').create(data);
+    revalidateCohort(cohortId, 'sprints');
     
     if (classId) revalidatePath(`/classes/${classId}`);
     if (assignmentId) revalidatePath(`/assignments/${assignmentId}`);
@@ -306,12 +271,7 @@ export async function createLink(formData: FormData) {
 }
 
 export async function updateLink(linkId: string, formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('links', linkId, 'manage-academics');
 
   const title = formData.get('title') as string;
   const url = formData.get('url') as string;
@@ -325,6 +285,7 @@ export async function updateLink(linkId: string, formData: FormData) {
     };
 
     await pb.collection('links').update(linkId, data);
+    revalidateCohort(cohortId, 'sprints');
     
     if (classId) revalidatePath(`/classes/${classId}`);
     if (assignmentId) revalidatePath(`/assignments/${assignmentId}`);
@@ -337,15 +298,11 @@ export async function updateLink(linkId: string, formData: FormData) {
 }
 
 export async function deleteLink(linkId: string, parentId?: string, parentType?: 'class' | 'assignment') {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || (user.role !== 'docente' && user.role !== 'admin')) {
-    throw new Error("Unauthorized");
-  }
+  const { pb, cohortId } = await authorizeRecord('links', linkId, 'manage-academics');
 
   try {
     await pb.collection('links').delete(linkId);
+    revalidateCohort(cohortId, 'sprints');
     
     if (parentId && parentType) {
         if (parentType === 'class') revalidatePath(`/classes/${parentId}`);
@@ -362,13 +319,6 @@ export async function deleteLink(linkId: string, parentId?: string, parentType?:
 // Deliveries
 
 export async function createDelivery(formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user || user.role !== 'estudiante') {
-    return { success: false, error: 'Unauthorized: Only students can submit' };
-  }
-
   const assignmentId = (formData.get('assignmentId') as string)?.trim();
   const repositoryUrl = (formData.get('repositoryUrl') as string)?.trim();
 
@@ -377,13 +327,20 @@ export async function createDelivery(formData: FormData) {
   }
 
   try {
-    const data: Record<string, any> = {
+    const { pb, context, cohortId } = await authorizeRecord('assignments', assignmentId);
+    requireWritableCohort(context);
+    const user = context.user;
+    if (user.role !== 'estudiante' || context.cohortRole !== 'student') {
+      return { success: false, error: 'Unauthorized: Only active cohort students can submit' };
+    }
+    const data: Record<string, string> = {
       assignment: assignmentId,
       student: user.id,
       repositoryUrl,
     };
     
     await pb.collection('deliveries').create(data);
+    revalidateCohort(cohortId, 'students');
     
     revalidatePath(`/assignments/${assignmentId}`);
     return { success: true };
@@ -398,12 +355,10 @@ export async function createDelivery(formData: FormData) {
 }
 
 export async function updateDelivery(deliveryId: string, formData: FormData) {
-  const pb = await createServerClient();
-  const user = pb.authStore.model;
-
-  if (!user) {
-    return { success: false, error: 'Unauthorized' };
-  }
+  const { pb, context, cohortId } = await authorizeRecord('deliveries', deliveryId);
+  requireWritableCohort(context);
+  const delivery = await pb.collection('deliveries').getOne(deliveryId);
+  assertOwner(context, String(delivery.student));
 
   // We need to fetch the delivery to check ownership, 
   // although PocketBase API rules should handle this, it's good to be explicit or just try/catch
@@ -421,6 +376,7 @@ export async function updateDelivery(deliveryId: string, formData: FormData) {
     };
 
     await pb.collection('deliveries').update(deliveryId, data);
+    revalidateCohort(cohortId, 'students');
     
     if (assignmentId) revalidatePath(`/assignments/${assignmentId}`);
     return { success: true };
@@ -429,5 +385,3 @@ export async function updateDelivery(deliveryId: string, formData: FormData) {
     return { success: false, error: 'Failed to update delivery' };
   }
 }
-
-

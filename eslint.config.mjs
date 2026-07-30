@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".tools/**",
+    "pb_migrations/**",
+    "pocketbase-test-data*/**",
+    "output/**",
   ]),
 ]);
 

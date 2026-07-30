@@ -11,13 +11,14 @@ import LinkForm from "./LinkForm";
 import InquiryList from "./inquiries/InquiryList";
 
 interface ClassDetailsManagementProps {
+  cohortId: string;
   user: User;
   classData: Class;
   links: LinkType[];
   inquiries: Inquiry[];
 }
 
-export default function ClassDetailsManagement({ user, classData, links, inquiries }: ClassDetailsManagementProps) {
+export default function ClassDetailsManagement({ cohortId, user, classData, links, inquiries }: ClassDetailsManagementProps) {
   const [isEditingClass, setIsEditingClass] = useState(false);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [editingLink, setEditingLink] = useState<LinkType | null>(null);
@@ -125,7 +126,7 @@ export default function ClassDetailsManagement({ user, classData, links, inquiri
 
       <div className="space-y-6 mt-12">
         <h2 className="text-2xl font-bold mb-4">Consultas</h2>
-        <InquiryList inquiries={inquiries} currentUser={user} context={{ classId: classData.id }} />
+        <InquiryList cohortId={cohortId} inquiries={inquiries} currentUser={user} context={{ classId: classData.id }} />
       </div>
 
       {/* Modals */}

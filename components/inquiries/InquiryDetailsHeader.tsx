@@ -10,15 +10,16 @@ import Link from "next/link";
 interface InquiryDetailsHeaderProps {
   inquiry: Inquiry;
   currentUser: User | null;
+  canModerate: boolean;
+  readOnly: boolean;
 }
 
-export default function InquiryDetailsHeader({ inquiry, currentUser }: InquiryDetailsHeaderProps) {
+export default function InquiryDetailsHeader({ inquiry, currentUser, canModerate, readOnly }: InquiryDetailsHeaderProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const isAuthor = currentUser?.id === inquiry.author;
-  const isTeacher = currentUser?.role === "docente" || currentUser?.role === "admin";
-  const canModify = isAuthor || isTeacher;
+  const canModify = !readOnly && (isAuthor || canModerate);
 
   const handleStatusChange = async (newStatus: "Pendiente" | "Resuelta") => {
     startTransition(async () => {
@@ -33,7 +34,7 @@ export default function InquiryDetailsHeader({ inquiry, currentUser }: InquiryDe
     startTransition(async () => {
       const result = await deleteInquiry(inquiry.id);
       if (result.success) {
-        router.push("/inquiries");
+        router.push(`/cohorts/${inquiry.cohort}/inquiries`);
       } else {
         alert(result.error);
       }
