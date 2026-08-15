@@ -31,9 +31,9 @@ El sistema SHALL exigir una cookie `pb_auth` para acceder a las rutas de la apli
 - **WHEN** una solicitud sin cookie `pb_auth` intenta abrir una ruta protegida
 - **THEN** el sistema SHALL redirigirla a `/login`
 
-#### Scenario: Authenticated login navigation
+#### Scenario: Login navigation with an existing cookie
 - **WHEN** una solicitud con cookie `pb_auth` abre `/login`
-- **THEN** el sistema SHALL redirigirla a `/`
+- **THEN** el proxy SHALL permitir cargar la pantalla de acceso para que una cookie vencida no provoque un bucle de redirecciones
 
 ### Requirement: Server-side session consumption
 El sistema SHALL cargar la cookie `pb_auth` en un cliente PocketBase aislado para cada operación renderizada o ejecutada en el servidor.

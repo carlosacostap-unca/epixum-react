@@ -25,11 +25,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from login page
-  if (isLoggedIn && path === '/login') {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
   return NextResponse.next();
 }
 

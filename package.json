@@ -26,6 +26,7 @@
     "test:cohort-navigation": "tsx --test lib/cohort-navigation.test.ts",
     "test:cohort-admin": "tsx --test lib/cohort-admin-policy.test.ts scripts/pocketbase/cohort-schema.test.ts",
     "test:cohort-academics": "tsx --test lib/review-privacy.test.ts",
+    "test:proxy": "tsx --test proxy.test.ts",
     "test:e2e:cohorts": "node scripts/run-cohort-e2e.mjs"
   },
   "dependencies": {
