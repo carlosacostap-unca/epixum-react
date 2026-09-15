@@ -128,9 +128,6 @@ async function main() {
   const responseB = await ensureRecord(adminPb, "inquiry_responses", "content", "respuesta-secreta-cohorte-b", {
     inquiry: inquiryB.id, author: student2.id, content: "respuesta-secreta-cohorte-b",
   });
-  const privateNote = await ensureRecord(adminPb, "review_private_notes", "review", availableReview.id, {
-    review: availableReview.id, content: "nota-privada-matriz",
-  });
 
   const [studentPb, student2Pb, inactivePb, teacherPb, teacher2Pb, mismatchPb, globalAdminPb] = await Promise.all([
     userClient(adminPb.baseURL, "student@test.local", "EpixumStudent1234!"),
@@ -179,13 +176,35 @@ async function main() {
       sprint: sprintA.id, teacher: mismatch.id, startTime: "2026-01-13 10:00:00.000Z", endTime: "2026-01-13 10:30:00.000Z", status: "Pendiente",
     }));
   });
-  await check("student can reserve two distinct reviews, cannot reserve a third, and can release both", async () => {
+  await check("student can reserve two distinct reviews, cannot reserve a third, and can release both while unevaluated", async () => {
     await studentPb.collection("reviews").update(availableReview.id, { student: student.id, bookingOrdinal: "first" });
     await studentPb.collection("reviews").update(competingReview.id, { student: student.id, bookingOrdinal: "second" });
     await expectDenied(() => studentPb.collection("reviews").update(thirdReview.id, { student: student.id, bookingOrdinal: "first" }));
     await expectDenied(() => studentPb.collection("reviews").update(availableReview.id, { status: "Aprobado" }));
     await studentPb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" });
     await studentPb.collection("reviews").update(competingReview.id, { student: "", bookingOrdinal: "" });
+  });
+  await check("student cannot release bookings protected by private note, public feedback or verdict", async () => {
+    await studentPb.collection("reviews").update(availableReview.id, { student: student.id, bookingOrdinal: "first" });
+    await teacherPb.collection("reviews").update(availableReview.id, { studentCancellationLocked: true });
+    const existingPrivateNote = await firstBy(adminPb, "review_private_notes", "review", availableReview.id);
+    if (existingPrivateNote) {
+      await teacherPb.collection("review_private_notes").update(existingPrivateNote.id, { content: "nota-privada-matriz" });
+    } else {
+      await teacherPb.collection("review_private_notes").create({ review: availableReview.id, content: "nota-privada-matriz" });
+    }
+    await expectDenied(() => studentPb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" }));
+    await teacherPb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" });
+
+    await studentPb.collection("reviews").update(competingReview.id, { student: student.id, bookingOrdinal: "first" });
+    await teacherPb.collection("reviews").update(competingReview.id, { public_note: "devolución pública", studentCancellationLocked: true });
+    await expectDenied(() => studentPb.collection("reviews").update(competingReview.id, { student: "", bookingOrdinal: "" }));
+    await teacherPb.collection("reviews").update(competingReview.id, { student: "", bookingOrdinal: "" });
+
+    await studentPb.collection("reviews").update(thirdReview.id, { student: student.id, bookingOrdinal: "first" });
+    await teacherPb.collection("reviews").update(thirdReview.id, { status: "Aprobado", studentCancellationLocked: true });
+    await expectDenied(() => studentPb.collection("reviews").update(thirdReview.id, { student: "", bookingOrdinal: "" }));
+    await teacherPb.collection("reviews").update(thirdReview.id, { student: "", bookingOrdinal: "" });
   });
   await check("non-owner student cannot mutate inquiry", async () => {
     await expectDenied(() => student2Pb.collection("inquiries").update(inquiry.id, { title: "Intrusión" }));
@@ -205,6 +224,8 @@ async function main() {
     await expectDenied(() => inactivePb.collection("deliveries").getOne(inactiveDelivery.id));
   });
   await check("private review note never reaches students", async () => {
+    const privateNote = await firstBy(adminPb, "review_private_notes", "review", availableReview.id);
+    assert(privateNote);
     await expectDenied(() => studentPb.collection("review_private_notes").getOne(privateNote.id));
     assert.equal((await studentPb.collection("review_private_notes").getFullList()).length, 0);
     const studentReview = await studentPb.collection("reviews").getOne(availableReview.id);

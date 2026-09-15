@@ -1,5 +1,7 @@
 import type PocketBase from "pocketbase";
 import type { CollectionModel } from "pocketbase";
+import type { Review, ReviewPrivateNote } from "../../types";
+import { hasTeacherReviewContent } from "../../lib/review-cancellation";
 
 const admin = '@request.auth.role = "admin"';
 
@@ -30,6 +32,8 @@ export function finalEducationalRules(): Record<string, FinalRuleSet> {
     '@request.body.status:changed = false',
     '@request.body.meetingLink:changed = false',
     '@request.body.roomNumber:changed = false',
+    '@request.body.studentCancellationLocked:changed = false',
+    'studentCancellationLocked = false',
     '((student = "" && @request.body.student = @request.auth.id && (@request.body.bookingOrdinal = "first" || @request.body.bookingOrdinal = "second")) || (student = @request.auth.id && @request.body.student = "" && @request.body.bookingOrdinal = ""))',
   ].join(' && ');
 
@@ -68,7 +72,9 @@ export function finalEducationalRules(): Record<string, FinalRuleSet> {
     },
     review_private_notes: {
       listRule: teacher('review.sprint.cohort'), viewRule: teacher('review.sprint.cohort'),
-      createRule: teacher('@request.body.review.sprint.cohort'), updateRule: teacher('review.sprint.cohort'), deleteRule: teacher('review.sprint.cohort'),
+      createRule: `(${teacher('@request.body.review.sprint.cohort')} && @request.body.review.studentCancellationLocked = true)`,
+      updateRule: `(${teacher('review.sprint.cohort')} && (@request.body.content = "" || review.studentCancellationLocked = true))`,
+      deleteRule: teacher('review.sprint.cohort'),
     },
     inquiries: {
       listRule: member('cohort'), viewRule: member('cohort'),
@@ -122,6 +128,32 @@ export async function ensureFinalCohortSchema(pb: PocketBase, apply: boolean) {
       await pb.collections.update(reviews.id, { fields: reviews.fields.filter((field) => field.name !== "private_note") });
     }
   }
+  const [reviewRecords, storedPrivateNotes] = await Promise.all([
+    pb.collection("reviews").getFullList<Review>({ requestKey: null }),
+    pb.collection("review_private_notes").getFullList<ReviewPrivateNote>({ requestKey: null }),
+  ]);
+  const privateNoteByReview = new Map(storedPrivateNotes.map((note) => [note.review, note.content]));
+  const protectionUpdates = reviewRecords.flatMap((review) => {
+    const studentCancellationLocked = hasTeacherReviewContent({
+      public_note: review.public_note,
+      privateNote: privateNoteByReview.get(review.id),
+      status: review.status,
+    });
+    return Boolean(review.studentCancellationLocked) === studentCancellationLocked
+      ? []
+      : [{ id: review.id, studentCancellationLocked }];
+  });
+  if (protectionUpdates.length) {
+    changes.push({ collection: "reviews", changes: [`backfill ${protectionUpdates.length} cancellation locks`] });
+    if (apply) {
+      for (const update of protectionUpdates) {
+        await pb.collection("reviews").update(update.id, {
+          studentCancellationLocked: update.studentCancellationLocked,
+        });
+      }
+    }
+  }
+
   for (const [name, rules] of Object.entries(finalEducationalRules())) {
     const collection = await pb.collections.getOne(name);
     const changedRules = Object.entries(rules).filter(([key, value]) => collection[key as keyof CollectionModel] !== value);

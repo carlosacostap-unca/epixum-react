@@ -115,6 +115,7 @@ export interface Review extends BaseModel {
   meetingLink?: string; // Zoom/Meet link
   roomNumber?: string; // Physical or virtual room number
   bookingOrdinal?: ReviewBookingOrdinal; // Internal first/second booking position within a sprint
+  studentCancellationLocked?: boolean; // True when teacher content protects the booking from student cancellation
   status?: 'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado';
   expand?: {
     sprint?: Sprint;

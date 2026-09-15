@@ -98,11 +98,22 @@ test('teacher manages academic work while cohort data stays isolated', async ({ 
   await page.getByRole('link', { name: 'Revisiones' }).click();
   await page.getByText('Sprint E2E Cohorte B').click();
   await expect(page.getByText('Gestionar Turnos')).toBeVisible();
+  const reviewListUrl = page.url();
+  await page.getByRole('link', { name: 'Ver Detalle' }).first().click();
+  await page.getByPlaceholder('Escribe aquí el feedback para el estudiante...').fill('Devolución E2E protegida');
+  await page.getByRole('button', { name: 'Guardar Cambios' }).click();
+  await expect(page.getByText('Información actualizada correctamente')).toBeVisible();
+  await page.getByRole('link', { name: 'Volver al listado' }).click();
   await page.getByRole('link', { name: 'Estudiantes' }).click();
   await expect(page.getByRole('row', { name: /Test Student student@test\.local Estudiante Activa/ })).toBeVisible();
   await page.getByRole('link', { name: 'Consultas' }).click();
   await expect(page.getByText('Consulta E2E Cohorte B')).toBeVisible();
   await expect(page.getByText('Consulta E2E Cohorte A')).toHaveCount(0);
+
+  await loginAs(page, 'student');
+  await page.goto(reviewListUrl);
+  await expect(page.getByText('Evaluación cargada · reserva protegida')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Cancelar Reserva' })).toHaveCount(1);
 });
 
 test('administrator manages global course and cohort lifecycle across cohorts', async ({ page }) => {

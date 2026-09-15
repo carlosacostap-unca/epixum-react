@@ -239,7 +239,10 @@ export async function ensureCohortSchema(pb: PocketBase, apply: boolean): Promis
   const reviewDefinition: CollectionDefinition = {
     name: "reviews",
     type: "base",
-    fields: [{ name: "bookingOrdinal", type: "select", required: false, maxSelect: 1, values: ["first", "second"], hidden: false }],
+    fields: [
+      { name: "bookingOrdinal", type: "select", required: false, maxSelect: 1, values: ["first", "second"], hidden: false },
+      { name: "studentCancellationLocked", type: "bool", required: false, hidden: false },
+    ],
     indexes: [REVIEW_BOOKING_INDEX],
     removeIndexNames: ["idx_reviews_sprint_student`"],
     listRule: reviews.listRule,
