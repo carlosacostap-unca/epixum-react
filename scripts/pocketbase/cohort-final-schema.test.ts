@@ -18,6 +18,9 @@ test("student review update is self-booking only and protects evaluation fields"
   for (const field of ["sprint", "teacher", "startTime", "endTime", "public_note", "status", "meetingLink", "roomNumber"]) {
     assert.match(rule, new RegExp(`@request\\.body\\.${field}:changed = false`));
   }
+  assert.match(rule, /bookingOrdinal = "first"/);
+  assert.match(rule, /bookingOrdinal = "second"/);
+  assert.match(rule, /student = @request\.auth\.id && @request\.body\.student = "" && @request\.body\.bookingOrdinal = ""/);
 });
 
 test("review rules never reference the legacy private note field", () => {

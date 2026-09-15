@@ -9,6 +9,7 @@ export interface BaseModel {
 export type UserRole = 'admin' | 'docente' | 'estudiante';
 export type CohortRole = 'student' | 'teacher';
 export type LifecycleStatus = 'planned' | 'active' | 'archived';
+export type ReviewBookingOrdinal = 'first' | 'second';
 
 export interface User extends BaseModel {
   username: string;
@@ -113,6 +114,7 @@ export interface Review extends BaseModel {
   public_note?: string;  // Feedback visible to the student
   meetingLink?: string; // Zoom/Meet link
   roomNumber?: string; // Physical or virtual room number
+  bookingOrdinal?: ReviewBookingOrdinal; // Internal first/second booking position within a sprint
   status?: 'Aprobado' | 'Pendiente' | 'No presentó' | 'Desaprobado';
   expand?: {
     sprint?: Sprint;

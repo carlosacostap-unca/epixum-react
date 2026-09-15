@@ -168,6 +168,15 @@ async function main() {
     startDate: "2025-03-01 00:00:00.000Z",
     endDate: "2025-04-01 00:00:00.000Z",
   });
+  await ensureRecord(pb, "reviews", "roomNumber", "HISTORICAL-REVIEW-BOOKED", {
+    sprint: sprint.id,
+    teacher: teacher.id,
+    student: student.id,
+    startTime: "2025-03-20 10:00:00.000Z",
+    endTime: "2025-03-20 10:20:00.000Z",
+    roomNumber: "HISTORICAL-REVIEW-BOOKED",
+    status: "Pendiente",
+  });
   const classRecord = await ensureRecord(pb, "classes", "title", "Clase histórica", {
     title: "Clase histórica",
     description: "Clase previa a cohortes",

@@ -33,12 +33,14 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
   const isStudent = currentUser.role === "estudiante";
   const canBook = isStudent && !readOnly;
 
-  // Check if current student has a booking
-  const myBooking = isStudent ? initialReviews.find(r => r.student === currentUser.id) : null;
-  
-  // Filter reviews if student has a booking
-  const reviewsToDisplay = (isStudent && myBooking) ? [myBooking] : initialReviews;
-  const title = (isStudent && myBooking) ? "Tu Turno Reservado" : "Turnos Disponibles";
+  const myBookings = isStudent ? initialReviews.filter(r => r.student === currentUser.id) : [];
+  const canReserveMore = myBookings.length < 2;
+  const reviewsToDisplay = isStudent
+    ? initialReviews.filter((review) => review.student === currentUser.id || (!review.student && canReserveMore))
+    : initialReviews;
+  const title = isStudent && myBookings.length > 0
+    ? `Tus turnos (${myBookings.length} de 2)`
+    : "Turnos disponibles";
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -376,7 +378,7 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
                                                         Cancelar Reserva
                                                     </button>
                                                 </>
-                                            ) : !isBooked && !myBooking ? (
+                                            ) : !isBooked && canReserveMore ? (
                                                 <button 
                                                     onClick={() => handleBook(review.id)}
                                                     disabled={isPending}
@@ -384,9 +386,9 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
                                                 >
                                                     Reservar Turno
                                                 </button>
-                                            ) : !isBooked && myBooking ? (
+                                            ) : !isBooked && !canReserveMore ? (
                                                 <span className="text-xs text-zinc-500 italic px-2">
-                                                    Ya tienes una reserva
+                                                    Ya tienes dos reservas
                                                 </span>
                                             ) : (
                                                 <span className="text-xs text-zinc-400 italic px-2">

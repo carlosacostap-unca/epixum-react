@@ -7,6 +7,7 @@ type CollectionDefinition = {
   type: "base";
   fields: FieldDefinition[];
   indexes?: string[];
+  removeIndexNames?: string[];
   listRule?: string | null;
   viewRule?: string | null;
   createRule?: string | null;
@@ -136,13 +137,18 @@ export async function ensureCollection(
   }
 
   const desiredIndexes = desired.indexes ?? [];
-  const nextIndexes = Array.from(new Set([...(current.indexes ?? []), ...desiredIndexes]));
-  const changedIndexes = desiredIndexes.filter((index) => !(current.indexes ?? []).includes(index));
+  const currentIndexes = current.indexes ?? [];
+  const removedIndexes = currentIndexes.filter((index) =>
+    (desired.removeIndexNames ?? []).some((name) => index.includes(name)),
+  );
+  const retainedIndexes = currentIndexes.filter((index) => !removedIndexes.includes(index));
+  const nextIndexes = Array.from(new Set([...retainedIndexes, ...desiredIndexes]));
+  const changedIndexes = desiredIndexes.filter((index) => !currentIndexes.includes(index));
   const rulesChanged = ["listRule", "viewRule", "createRule", "updateRule", "deleteRule"].some(
     (key) => current[key as keyof typeof current] !== desired[key as keyof CollectionDefinition],
   );
 
-  if (!changedFields.length && !changedIndexes.length && !rulesChanged) return null;
+  if (!changedFields.length && !changedIndexes.length && !removedIndexes.length && !rulesChanged) return null;
   if (apply) {
     await pb.collections.update(current.id, {
       fields: nextFields,
@@ -154,8 +160,16 @@ export async function ensureCollection(
       deleteRule: desired.deleteRule,
     });
   }
-  return { action: "update-collection", collection: desired.name, fields: changedFields, indexes: changedIndexes };
+  return {
+    action: "update-collection",
+    collection: desired.name,
+    fields: changedFields,
+    indexes: [...changedIndexes, ...removedIndexes.map((index) => `remove ${index}`)],
+  };
 }
+
+export const LEGACY_REVIEW_BOOKING_INDEX = "CREATE UNIQUE INDEX `idx_reviews_sprint_student` ON `reviews` (`sprint`, `student`) WHERE `student` != ''";
+export const REVIEW_BOOKING_INDEX = "CREATE UNIQUE INDEX `idx_reviews_sprint_student_ordinal` ON `reviews` (`sprint`, `student`, (CASE WHEN `bookingOrdinal` = 'second' THEN 'second' ELSE 'first' END)) WHERE `student` != ''";
 
 export async function ensureCohortSchema(pb: PocketBase, apply: boolean): Promise<SchemaChange[]> {
   const required = ["users", "sprints", "inquiries", "reviews"];
@@ -222,12 +236,12 @@ export async function ensureCohortSchema(pb: PocketBase, apply: boolean): Promis
   }
 
   const reviews = await pb.collections.getOne("reviews");
-  const reservationIndex = "CREATE UNIQUE INDEX `idx_reviews_sprint_student` ON `reviews` (`sprint`, `student`) WHERE `student` != ''";
   const reviewDefinition: CollectionDefinition = {
     name: "reviews",
     type: "base",
-    fields: [],
-    indexes: [reservationIndex],
+    fields: [{ name: "bookingOrdinal", type: "select", required: false, maxSelect: 1, values: ["first", "second"], hidden: false }],
+    indexes: [REVIEW_BOOKING_INDEX],
+    removeIndexNames: ["idx_reviews_sprint_student`"],
     listRule: reviews.listRule,
     viewRule: reviews.viewRule,
     createRule: reviews.createRule,

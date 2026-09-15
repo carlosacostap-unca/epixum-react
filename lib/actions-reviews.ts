@@ -6,6 +6,7 @@ import { authorizeRecord, requireCohortPermission, requireWritableCohort } from 
 import { revalidateCohort } from "./cohort-cache";
 import { errorMessage } from "./errors";
 import { attachPrivateReviewNote, withoutPrivateReviewFields } from "./review-privacy";
+import { nextBookingOrdinal } from "./review-bookings";
 
 async function requireActiveStudentInCohort(
     pb: Awaited<ReturnType<typeof authorizeRecord>>['pb'],
@@ -103,32 +104,52 @@ export async function bookReviewSlot(reviewId: string) {
     if (user.role !== 'estudiante' || context.cohortRole !== 'student') {
       return { success: false, error: 'Solo estudiantes activos de la cohorte pueden reservar turnos' };
     }
-    // Check if slot is already booked
-    const review = await pb.collection('reviews').getOne<Review>(reviewId);
-    if (review.student) {
-      return { success: false, error: 'Este turno ya está reservado' };
-    }
-    
-    // Check if student already has a booking in this sprint
-    const existingReview = await pb.collection('reviews').getFirstListItem(
-      `sprint = "${review.sprint}" && student = "${user.id}"`
-    ).catch(() => null);
 
-    if (existingReview) {
-       return { success: false, error: 'Ya tienes un turno reservado en este sprint' };
-    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const review = await pb.collection('reviews').getOne<Review>(reviewId, { requestKey: null });
+      if (review.student) {
+        return { success: false, error: 'Este turno ya está reservado' };
+      }
+      const bookings = await pb.collection('reviews').getFullList<Review>({
+        filter: pb.filter('sprint = {:sprint} && student = {:student}', {
+          sprint: review.sprint,
+          student: user.id,
+        }),
+        requestKey: null,
+      });
+      const bookingOrdinal = nextBookingOrdinal(bookings);
+      if (!bookingOrdinal) {
+        return { success: false, error: 'Ya tienes dos turnos reservados en este sprint' };
+      }
 
-    await pb.collection('reviews').update(reviewId, {
-      student: user.id,
-    });
-    revalidateCohort(cohortId, 'reviews');
-    revalidatePath(`/reviews/${review.sprint}`);
-    return { success: true };
+      try {
+        await pb.collection('reviews').update(reviewId, {
+          student: user.id,
+          bookingOrdinal,
+        }, { requestKey: null });
+        revalidateCohort(cohortId, 'reviews');
+        revalidatePath(`/reviews/${review.sprint}`);
+        return { success: true };
+      } catch (error) {
+        if (attempt === 0) continue;
+        const latestBookings = await pb.collection('reviews').getFullList<Review>({
+          filter: pb.filter('sprint = {:sprint} && student = {:student}', {
+            sprint: review.sprint,
+            student: user.id,
+          }),
+          requestKey: null,
+        });
+        if (!nextBookingOrdinal(latestBookings)) {
+          return { success: false, error: 'Ya tienes dos turnos reservados en este sprint' };
+        }
+        const latestSlot = await pb.collection('reviews').getOne<Review>(reviewId, { requestKey: null });
+        if (latestSlot.student) return { success: false, error: 'Este turno ya está reservado' };
+        throw error;
+      }
+    }
+    throw new Error('No se pudo reservar el turno');
   } catch (error: unknown) {
     console.error('Error booking review:', error);
-    if (String(error).includes('unique') || String(error).includes('409')) {
-      return { success: false, error: 'Ya tienes un turno reservado en este sprint' };
-    }
     return { success: false, error: errorMessage(error, 'Error al reservar el turno') };
   }
 }
@@ -153,6 +174,7 @@ export async function cancelReviewBooking(reviewId: string) {
 
         await pb.collection('reviews').update(reviewId, {
             student: null,
+            bookingOrdinal: null,
         });
         revalidateCohort(cohortId, 'reviews');
         revalidatePath(`/reviews/${review.sprint}`);

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { cohortCollectionDefinitions, ensureCollection } from "./cohort-schema";
+import { LEGACY_REVIEW_BOOKING_INDEX, REVIEW_BOOKING_INDEX } from "./cohort-schema";
 
 function fakePocketBase(existing?: Record<string, unknown>) {
   const calls: Array<{ kind: string; value: unknown }> = [];
@@ -73,6 +74,46 @@ test("ensureCollection plans and applies a missing field once", async () => {
   }, true);
   assert.deepEqual(result?.fields, ["name"]);
   assert.equal(pb.calls[0]?.kind, "update");
+});
+
+test("review schema replaces the single-booking index without rewriting records", async () => {
+  const pb = fakePocketBase({
+    id: "reviews-id",
+    name: "reviews",
+    type: "base",
+    fields: [],
+    indexes: [LEGACY_REVIEW_BOOKING_INDEX],
+    listRule: null,
+    viewRule: null,
+    createRule: null,
+    updateRule: null,
+    deleteRule: null,
+  });
+  await ensureCollection(pb as never, {
+    name: "reviews",
+    type: "base",
+    fields: [{
+      name: "bookingOrdinal",
+      type: "select",
+      required: false,
+      maxSelect: 1,
+      values: ["first", "second"],
+      hidden: false,
+    }],
+    indexes: [REVIEW_BOOKING_INDEX],
+    removeIndexNames: ["idx_reviews_sprint_student`"],
+    listRule: null,
+    viewRule: null,
+    createRule: null,
+    updateRule: null,
+    deleteRule: null,
+  }, true);
+  const update = pb.calls.find((call) => call.kind === "update")?.value as {
+    fields?: Array<Record<string, unknown>>;
+    indexes?: string[];
+  };
+  assert.deepEqual(update.fields?.find((field) => field.name === "bookingOrdinal")?.values, ["first", "second"]);
+  assert.deepEqual(update.indexes, [REVIEW_BOOKING_INDEX]);
 });
 
 test("enrollment rules let assigned teachers manage students but never teachers", () => {

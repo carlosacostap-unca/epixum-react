@@ -30,7 +30,7 @@ export function finalEducationalRules(): Record<string, FinalRuleSet> {
     '@request.body.status:changed = false',
     '@request.body.meetingLink:changed = false',
     '@request.body.roomNumber:changed = false',
-    '((student = "" && @request.body.student = @request.auth.id) || (student = @request.auth.id && @request.body.student = ""))',
+    '((student = "" && @request.body.student = @request.auth.id && (@request.body.bookingOrdinal = "first" || @request.body.bookingOrdinal = "second")) || (student = @request.auth.id && @request.body.student = "" && @request.body.bookingOrdinal = ""))',
   ].join(' && ');
 
   return {

@@ -3,6 +3,7 @@ import FormattedDate from '@/components/FormattedDate';
 import { resolveCohortContext } from '@/lib/cohort-context';
 import { getSprints, getUserReviews } from '@/lib/data';
 import type { Review } from '@/types';
+import { latestReview } from '@/lib/review-bookings';
 
 export default async function ReviewsCohortView({ cohortId }: { cohortId: string }) {
   const { user } = await resolveCohortContext(cohortId);
@@ -11,7 +12,11 @@ export default async function ReviewsCohortView({ cohortId }: { cohortId: string
   if (user.role === 'estudiante') {
     try { reviews = await getUserReviews(cohortId, user.id); } catch (error) { console.error('Error fetching reviews', error); }
   }
-  const reviewsMap = new Map(reviews.map((review) => [review.sprint, review]));
+  const reviewsMap = new Map<string, Review>();
+  for (const review of reviews) {
+    const latest = latestReview([reviewsMap.get(review.sprint), review].filter(Boolean) as Review[]);
+    if (latest) reviewsMap.set(review.sprint, latest);
+  }
 
   return (
     <main className="container mx-auto min-h-screen p-8">
