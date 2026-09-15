@@ -20,6 +20,8 @@ test("student review update is self-booking only and protects evaluation fields"
   }
   assert.match(rule, /bookingOrdinal = "first"/);
   assert.match(rule, /bookingOrdinal = "second"/);
+  assert.match(rule, /@request\.body\.studentCancellationLocked:changed = false/);
+  assert.match(rule, /studentCancellationLocked = false/);
   assert.match(rule, /student = @request\.auth\.id && @request\.body\.student = "" && @request\.body\.bookingOrdinal = ""/);
 });
 
@@ -32,4 +34,6 @@ test("private review notes require a cohort teacher or administrator", () => {
   const rules = finalEducationalRules().review_private_notes;
   assert.match(rules.listRule ?? "", /enrollments\.role \?= "teacher"/);
   assert.match(rules.listRule ?? "", /@request\.auth\.role = "admin"/);
+  assert.match(rules.createRule ?? "", /@request\.body\.review\.studentCancellationLocked = true/);
+  assert.match(rules.updateRule ?? "", /review\.studentCancellationLocked = true/);
 });

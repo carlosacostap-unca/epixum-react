@@ -7,6 +7,8 @@ import { revalidateCohort } from "./cohort-cache";
 import { errorMessage } from "./errors";
 import { attachPrivateReviewNote, withoutPrivateReviewFields } from "./review-privacy";
 import { nextBookingOrdinal } from "./review-bookings";
+import { hasTeacherReviewContent } from "./review-cancellation";
+import { createPrivilegedServerClient } from "./pocketbase-server";
 
 async function requireActiveStudentInCohort(
     pb: Awaited<ReturnType<typeof authorizeRecord>>['pb'],
@@ -23,6 +25,21 @@ async function requireActiveStudentInCohort(
         ),
     ]);
     if (student.role !== 'estudiante' || enrollment.user !== studentId) throw new Error('STUDENT_NOT_ACTIVE_IN_COHORT');
+}
+
+async function syncPrivateReviewNote(
+    pb: Awaited<ReturnType<typeof authorizeRecord>>['pb'],
+    reviewId: string,
+    content: string,
+) {
+    const notes = await pb.collection('review_private_notes').getFullList({
+        filter: pb.filter('review = {:review}', { review: reviewId }),
+    });
+    if (notes[0]) {
+        await pb.collection('review_private_notes').update(notes[0].id, { content });
+    } else if (content.trim()) {
+        await pb.collection('review_private_notes').create({ review: reviewId, content });
+    }
 }
 
 export async function createReviewSlot(sprintId: string, startTime: string, endTime: string) {
@@ -166,6 +183,21 @@ export async function cancelReviewBooking(reviewId: string) {
             if (review.student !== user.id) {
                 return { success: false, error: 'No puedes cancelar una reserva que no es tuya' };
             }
+            const privilegedPb = await createPrivilegedServerClient();
+            const privateNotes = await privilegedPb.collection('review_private_notes').getFullList<ReviewPrivateNote>({
+                filter: privilegedPb.filter('review = {:review}', { review: reviewId }),
+            });
+            const privateNote = privateNotes[0];
+            const hasTeacherContent = review.studentCancellationLocked || hasTeacherReviewContent({
+                ...review,
+                privateNote: privateNote?.content,
+            });
+            if (hasTeacherContent) {
+                if (!review.studentCancellationLocked) {
+                    await privilegedPb.collection('reviews').update(reviewId, { studentCancellationLocked: true });
+                }
+                return { success: false, error: 'Esta reserva ya tiene contenido docente y no puede cancelarse' };
+            }
         } else if (user.role !== 'docente' && user.role !== 'admin') {
              // Teachers can cancel any booking (remove student from slot)
              return { success: false, error: 'No autorizado' };
@@ -231,16 +263,19 @@ export async function updateReviewNotes(
         // We need to fetch the review to get the sprint ID for revalidation
         const review = await pb.collection('reviews').getOne<Review>(reviewId);
         
+        const studentCancellationLocked = hasTeacherReviewContent({
+            public_note: publicNote,
+            privateNote,
+            status: review.status,
+        });
+        if (!studentCancellationLocked) await syncPrivateReviewNote(pb, reviewId, privateNote);
         await pb.collection('reviews').update(reviewId, {
             public_note: publicNote,
+            studentCancellationLocked,
             meetingLink,
             roomNumber
         });
-        const privateNotes = await pb.collection('review_private_notes').getFullList({
-            filter: pb.filter('review = {:review}', { review: reviewId }),
-        });
-        if (privateNotes[0]) await pb.collection('review_private_notes').update(privateNotes[0].id, { content: privateNote });
-        else await pb.collection('review_private_notes').create({ review: reviewId, content: privateNote });
+        if (studentCancellationLocked) await syncPrivateReviewNote(pb, reviewId, privateNote);
         revalidateCohort(cohortId, 'reviews');
         
         revalidatePath(`/reviews/${review.sprint}`);
@@ -267,6 +302,7 @@ export async function upsertReviewNotes(
         const { pb, cohortId, context } = authorization;
         const user = context.user;
         await requireActiveStudentInCohort(pb, cohortId, studentId);
+        const studentCancellationLocked = hasTeacherReviewContent({ public_note: publicNote, privateNote, status });
         let targetReviewId = reviewId;
         if (reviewId) {
             const existingReview = await pb.collection('reviews').getOne<Review>(reviewId);
@@ -274,10 +310,13 @@ export async function upsertReviewNotes(
                 throw new Error('REVIEW_RELATION_MISMATCH');
             }
             // Update existing review
+            if (!studentCancellationLocked) await syncPrivateReviewNote(pb, reviewId, privateNote);
             await pb.collection('reviews').update(reviewId, {
                 public_note: publicNote,
-                status: status
+                status: status,
+                studentCancellationLocked,
             });
+            if (studentCancellationLocked) await syncPrivateReviewNote(pb, reviewId, privateNote);
         } else {
             // Create new review
             // We set start/end time to now as placeholders since they are likely required
@@ -289,14 +328,13 @@ export async function upsertReviewNotes(
                 startTime: now,
                 endTime: now,
                 public_note: publicNote,
-                status: status
+                status: status,
+                studentCancellationLocked,
             });
             targetReviewId = created.id;
         }
         if (!targetReviewId) throw new Error('No se pudo resolver la revisión');
-        const notes = await pb.collection('review_private_notes').getFullList({ filter: pb.filter('review = {:review}', { review: targetReviewId }) });
-        if (notes[0]) await pb.collection('review_private_notes').update(notes[0].id, { content: privateNote });
-        else await pb.collection('review_private_notes').create({ review: targetReviewId, content: privateNote });
+        if (!reviewId) await syncPrivateReviewNote(pb, targetReviewId, privateNote);
         revalidateCohort(cohortId, 'reviews', 'students');
         
         revalidatePath(`/students`);
