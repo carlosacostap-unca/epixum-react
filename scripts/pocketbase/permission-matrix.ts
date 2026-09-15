@@ -81,6 +81,10 @@ async function main() {
     title: "Sprint cohorte aislada", description: "Frontera B", cohort: cohortB.id,
     startDate: "2026-01-01 00:00:00.000Z", endDate: "2026-02-01 00:00:00.000Z",
   });
+  const bookingSprint = await ensureRecord(adminPb, "sprints", "title", "Sprint matriz reservas", {
+    title: "Sprint matriz reservas", description: "Valida dos reservas", cohort: cohortA.id,
+    startDate: "2026-02-01 00:00:00.000Z", endDate: "2026-02-28 00:00:00.000Z",
+  });
   const classA = await firstBy(adminPb, "classes", "sprint", sprintA.id);
   const assignmentA = await firstBy(adminPb, "assignments", "sprint", sprintA.id);
   assert(classA && assignmentA);
@@ -100,12 +104,16 @@ async function main() {
     assignment: assignmentB.id, student: student2.id, repositoryUrl: "https://example.com/cohort-b-delivery",
   });
   const availableReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A", {
-    sprint: sprintA.id, teacher: teacher.id, startTime: "2026-01-10 10:00:00.000Z", endTime: "2026-01-10 10:30:00.000Z",
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 10:00:00.000Z", endTime: "2026-01-10 10:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-A",
   });
   const competingReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A-SECOND", {
-    sprint: sprintA.id, teacher: teacher.id, startTime: "2026-01-10 11:00:00.000Z", endTime: "2026-01-10 11:30:00.000Z",
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 11:00:00.000Z", endTime: "2026-01-10 11:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-A-SECOND",
+  });
+  const thirdReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A-THIRD", {
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 12:00:00.000Z", endTime: "2026-01-10 12:30:00.000Z",
+    status: "Pendiente", roomNumber: "MATRIX-A-THIRD",
   });
   const reviewB = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-B", {
     sprint: sprintB.id, teacher: teacher2.id, startTime: "2026-01-10 10:00:00.000Z", endTime: "2026-01-10 10:30:00.000Z",
@@ -171,11 +179,13 @@ async function main() {
       sprint: sprintA.id, teacher: mismatch.id, startTime: "2026-01-13 10:00:00.000Z", endTime: "2026-01-13 10:30:00.000Z", status: "Pendiente",
     }));
   });
-  await check("student can reserve and release only self", async () => {
-    await studentPb.collection("reviews").update(availableReview.id, { student: student.id });
-    await expectDenied(() => studentPb.collection("reviews").update(competingReview.id, { student: student.id }));
+  await check("student can reserve two distinct reviews, cannot reserve a third, and can release both", async () => {
+    await studentPb.collection("reviews").update(availableReview.id, { student: student.id, bookingOrdinal: "first" });
+    await studentPb.collection("reviews").update(competingReview.id, { student: student.id, bookingOrdinal: "second" });
+    await expectDenied(() => studentPb.collection("reviews").update(thirdReview.id, { student: student.id, bookingOrdinal: "first" }));
     await expectDenied(() => studentPb.collection("reviews").update(availableReview.id, { status: "Aprobado" }));
-    await studentPb.collection("reviews").update(availableReview.id, { student: "" });
+    await studentPb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" });
+    await studentPb.collection("reviews").update(competingReview.id, { student: "", bookingOrdinal: "" });
   });
   await check("non-owner student cannot mutate inquiry", async () => {
     await expectDenied(() => student2Pb.collection("inquiries").update(inquiry.id, { title: "Intrusión" }));

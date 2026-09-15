@@ -112,15 +112,24 @@ async function main() {
     pb.collection("sprints").getFullList({ fields: "id,cohort" }),
     pb.collection("inquiries").getFullList({ fields: "id,cohort" }),
     pb.collection("enrollments").getFullList({ fields: "id,cohort,user,role,status" }),
-    pb.collection("reviews").getFullList({ fields: "id,sprint,student" }),
+    pb.collection("reviews").getFullList({ fields: "id,sprint,student,bookingOrdinal" }),
     pb.logs.getList(1, 200, { sort: "-created" }),
   ]);
 
   const enrollmentKeys = enrollments.map((record) => `${record.cohort}:${record.user}`);
-  const reservationKeys = reviews
-    .filter((record) => Boolean(record.student))
-    .map((record) => `${record.sprint}:${record.student}`);
   const duplicates = (keys: string[]) => [...new Set(keys.filter((key, index) => keys.indexOf(key) !== index))];
+  const reservedReviews = reviews.filter((record) => Boolean(record.student));
+  const reservationCounts = new Map<string, number>();
+  for (const record of reservedReviews) {
+    const key = `${record.sprint}:${record.student}`;
+    reservationCounts.set(key, (reservationCounts.get(key) ?? 0) + 1);
+  }
+  const overbookedReservationKeys = [...reservationCounts]
+    .filter(([, total]) => total > 2)
+    .map(([key]) => key);
+  const reservationOrdinalKeys = reservedReviews.map((record) =>
+    `${record.sprint}:${record.student}:${record.bookingOrdinal === 'second' ? 'second' : 'first'}`,
+  );
   const authorizationFailureIndexes = logs.items
     .map((log, index) => {
       const status = Number(nestedValue(log.data, ["status", "statuscode"]));
@@ -135,7 +144,8 @@ async function main() {
     orphanSprints: sprints.filter((record) => !record.cohort).length,
     orphanInquiries: inquiries.filter((record) => !record.cohort).length,
     duplicateEnrollments: duplicates(enrollmentKeys).length,
-    duplicateReservations: duplicates(reservationKeys).length,
+    duplicateReservations: overbookedReservationKeys.length,
+    duplicateReservationOrdinals: duplicates(reservationOrdinalKeys).length,
     recentLogsSampled: logs.items.length,
     recentAuthorizationFailures: authorizationFailureIndexes.length,
     authorizationFailureSummary: authorizationFailureIndexes.map((index) => {
@@ -177,7 +187,8 @@ async function main() {
       checks.orphanSprints === 0 &&
       checks.orphanInquiries === 0 &&
       checks.duplicateEnrollments === 0 &&
-      checks.duplicateReservations === 0,
+      checks.duplicateReservations === 0 &&
+      checks.duplicateReservationOrdinals === 0,
   };
   await writeFile(outputPath, stableJson(report), "utf8");
   console.log(stableJson(report));

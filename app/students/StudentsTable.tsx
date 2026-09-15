@@ -5,6 +5,7 @@ import { User, Sprint, Review } from '@/types';
 import { upsertReviewNotes } from '@/lib/actions-reviews';
 import { useRouter } from 'next/navigation';
 import FormattedDate from "@/components/FormattedDate";
+import { latestReview } from '@/lib/review-bookings';
 
 interface StudentsTableProps {
   students: User[];
@@ -25,7 +26,7 @@ export default function StudentsTable({ students, sprints, reviews, readOnly = f
   const [isSaving, setIsSaving] = useState(false);
 
   const getReview = (studentId: string, sprintId: string) => {
-    return reviews.find(r => r.student === studentId && r.sprint === sprintId);
+    return latestReview(reviews.filter(r => r.student === studentId && r.sprint === sprintId));
   };
 
   const openModal = (student: User, sprint: Sprint) => {

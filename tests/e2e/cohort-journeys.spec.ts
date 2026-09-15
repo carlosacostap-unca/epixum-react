@@ -55,11 +55,20 @@ test('student switches cohorts and completes delivery, review and inquiry journe
   await page.getByRole('link', { name: 'Revisiones' }).click();
   await page.getByText('Sprint E2E Cohorte B').click();
   page.once('dialog', (dialog) => dialog.accept());
-  await page.getByRole('button', { name: 'Reservar Turno' }).click();
-  await expect(page.getByText('(Tu reserva)')).toBeVisible();
+  await page.getByRole('button', { name: 'Reservar Turno' }).first().click();
+  await expect(page.getByText('(Tu reserva)')).toHaveCount(1);
   page.once('dialog', (dialog) => dialog.accept());
-  await page.getByRole('button', { name: 'Cancelar Reserva' }).click();
-  await expect(page.getByRole('button', { name: 'Reservar Turno' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reservar Turno' }).first().click();
+  await expect(page.getByText('(Tu reserva)')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Reservar Turno' })).toHaveCount(0);
+  await expect(page.getByText('Tus turnos (2 de 2)')).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Cancelar Reserva' }).first().click();
+  await expect(page.getByRole('button', { name: 'Reservar Turno' }).first()).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Reservar Turno' }).first().click();
+  await expect(page.getByText('(Tu reserva)')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Reservar Turno' })).toHaveCount(0);
 
   await page.getByRole('link', { name: 'Consultas' }).click();
   await expect(page.getByText('Consulta E2E Cohorte B')).toBeVisible();

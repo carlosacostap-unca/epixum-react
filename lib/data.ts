@@ -33,7 +33,7 @@ export const getUserReview = cache(async (sprintId: string, userId: string) => {
     const { pb } = await authorizeRecord('sprints', sprintId);
     const record = await pb.collection('reviews').getFirstListItem<Review>(
       `sprint = "${sprintId}" && student = "${userId}"`,
-      { expand: 'teacher,student' }
+      { expand: 'teacher,student', sort: '-startTime,-created,-id' }
     );
     return withoutPrivateReviewFields(record);
   } catch {
@@ -47,7 +47,7 @@ export const getUserReviews = cache(async (cohortId: string, userId: string) => 
   try {
     const records = await pb.collection('reviews').getFullList<Review>({
       filter: pb.filter('student = {:user} && sprint.cohort = {:cohort}', { user: userId, cohort: cohortId }),
-      sort: '-created',
+      sort: '-startTime,-created,-id',
     });
     return records.map(withoutPrivateReviewFields);
   } catch (error) {

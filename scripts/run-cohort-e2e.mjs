@@ -6,6 +6,7 @@ import process from 'node:process';
 const root = resolve(import.meta.dirname, '..');
 const testRoot = resolve(root, '.tools', 'pocketbase-test');
 const dataDir = resolve(testRoot, 'cohort-e2e-data');
+const reviewSnapshotPath = resolve(testRoot, 'review-booking-before.json');
 const pocketBaseBinary = process.env.POCKETBASE_TEST_BINARY
   ? resolve(process.env.POCKETBASE_TEST_BINARY)
   : resolve(testRoot, process.platform === 'win32' ? 'pocketbase.exe' : 'pocketbase');
@@ -71,6 +72,7 @@ async function cleanup() {
       await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
     }
   }
+  if (existsSync(reviewSnapshotPath)) rmSync(reviewSnapshotPath, { force: true });
 }
 
 async function main() {
@@ -97,8 +99,10 @@ async function main() {
     POCKETBASE_COHORT_MIGRATION_APPROVED: 'true',
   };
   run(npm, ['run', 'pb:cohorts:seed-test'], testEnv);
+  run(npx, ['tsx', 'scripts/pocketbase/review-booking-migration-check.ts', 'snapshot', '--file', reviewSnapshotPath], testEnv);
   run(npm, ['run', 'pb:cohorts:migrate', '--', '--apply'], testEnv);
   run(npm, ['run', 'pb:cohorts:finalize', '--', '--apply'], testEnv);
+  run(npx, ['tsx', 'scripts/pocketbase/review-booking-migration-check.ts', 'verify', '--file', reviewSnapshotPath], testEnv);
   run(npm, ['run', 'pb:cohorts:seed-e2e'], testEnv);
   run(npm, ['run', 'pb:cohorts:test-permissions'], testEnv);
 
