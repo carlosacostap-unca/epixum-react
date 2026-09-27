@@ -104,17 +104,39 @@ async function main() {
     assignment: assignmentB.id, student: student2.id, repositoryUrl: "https://example.com/cohort-b-delivery",
   });
   const availableReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A", {
-    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 10:00:00.000Z", endTime: "2026-01-10 10:30:00.000Z",
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2099-01-10 10:00:00.000Z", endTime: "2099-01-10 10:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-A",
   });
   const competingReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A-SECOND", {
-    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 11:00:00.000Z", endTime: "2026-01-10 11:30:00.000Z",
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2099-01-10 11:00:00.000Z", endTime: "2099-01-10 11:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-A-SECOND",
   });
   const thirdReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A-THIRD", {
-    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2026-01-10 12:00:00.000Z", endTime: "2026-01-10 12:30:00.000Z",
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2099-01-10 12:00:00.000Z", endTime: "2099-01-10 12:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-A-THIRD",
   });
+  const pastReview = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-A-PAST", {
+    sprint: bookingSprint.id, teacher: teacher.id, startTime: "2000-01-10 12:00:00.000Z", endTime: "2000-01-10 12:30:00.000Z",
+    status: "Pendiente", roomNumber: "MATRIX-A-PAST",
+  });
+  await Promise.all([
+    adminPb.collection("reviews").update(availableReview.id, {
+      student: "", bookingOrdinal: "", public_note: "", status: "Pendiente", studentCancellationLocked: false,
+      startTime: "2099-01-10 10:00:00.000Z", endTime: "2099-01-10 10:30:00.000Z",
+    }),
+    adminPb.collection("reviews").update(competingReview.id, {
+      student: "", bookingOrdinal: "", public_note: "", status: "Pendiente", studentCancellationLocked: false,
+      startTime: "2099-01-10 11:00:00.000Z", endTime: "2099-01-10 11:30:00.000Z",
+    }),
+    adminPb.collection("reviews").update(thirdReview.id, {
+      student: "", bookingOrdinal: "", public_note: "", status: "Pendiente", studentCancellationLocked: false,
+      startTime: "2099-01-10 12:00:00.000Z", endTime: "2099-01-10 12:30:00.000Z",
+    }),
+    adminPb.collection("reviews").update(pastReview.id, {
+      student: "", bookingOrdinal: "", public_note: "", status: "Pendiente", studentCancellationLocked: false,
+      startTime: "2000-01-10 12:00:00.000Z", endTime: "2000-01-10 12:30:00.000Z",
+    }),
+  ]);
   const reviewB = await ensureRecord(adminPb, "reviews", "roomNumber", "MATRIX-B", {
     sprint: sprintB.id, teacher: teacher2.id, startTime: "2026-01-10 10:00:00.000Z", endTime: "2026-01-10 10:30:00.000Z",
     status: "Pendiente", roomNumber: "MATRIX-B",
@@ -176,13 +198,22 @@ async function main() {
       sprint: sprintA.id, teacher: mismatch.id, startTime: "2026-01-13 10:00:00.000Z", endTime: "2026-01-13 10:30:00.000Z", status: "Pendiente",
     }));
   });
-  await check("student can reserve two distinct reviews, cannot reserve a third, and can release both while unevaluated", async () => {
+  await check("student can release an upcoming review and another student can reserve it", async () => {
     await studentPb.collection("reviews").update(availableReview.id, { student: student.id, bookingOrdinal: "first" });
     await studentPb.collection("reviews").update(competingReview.id, { student: student.id, bookingOrdinal: "second" });
     await expectDenied(() => studentPb.collection("reviews").update(thirdReview.id, { student: student.id, bookingOrdinal: "first" }));
     await expectDenied(() => studentPb.collection("reviews").update(availableReview.id, { status: "Aprobado" }));
     await studentPb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" });
     await studentPb.collection("reviews").update(competingReview.id, { student: "", bookingOrdinal: "" });
+    await student2Pb.collection("reviews").update(availableReview.id, { student: student2.id, bookingOrdinal: "first" });
+    assert.equal((await student2Pb.collection("reviews").getOne(availableReview.id)).student, student2.id);
+    await student2Pb.collection("reviews").update(availableReview.id, { student: "", bookingOrdinal: "" });
+  });
+  await check("student cannot release a review that has already started", async () => {
+    await teacherPb.collection("reviews").update(pastReview.id, { student: student.id, bookingOrdinal: "first" });
+    await expectDenied(() => studentPb.collection("reviews").update(pastReview.id, { student: "", bookingOrdinal: "" }));
+    assert.equal((await teacherPb.collection("reviews").getOne(pastReview.id)).student, student.id);
+    await teacherPb.collection("reviews").update(pastReview.id, { student: "", bookingOrdinal: "" });
   });
   await check("student cannot release bookings protected by private note, public feedback or verdict", async () => {
     await studentPb.collection("reviews").update(availableReview.id, { student: student.id, bookingOrdinal: "first" });

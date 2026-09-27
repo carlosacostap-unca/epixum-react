@@ -34,7 +34,7 @@ export function finalEducationalRules(): Record<string, FinalRuleSet> {
     '@request.body.roomNumber:changed = false',
     '@request.body.studentCancellationLocked:changed = false',
     'studentCancellationLocked = false',
-    '((student = "" && @request.body.student = @request.auth.id && (@request.body.bookingOrdinal = "first" || @request.body.bookingOrdinal = "second")) || (student = @request.auth.id && @request.body.student = "" && @request.body.bookingOrdinal = ""))',
+    '((student = "" && @request.body.student = @request.auth.id && (@request.body.bookingOrdinal = "first" || @request.body.bookingOrdinal = "second")) || (startTime > @now && student = @request.auth.id && @request.body.student = "" && @request.body.bookingOrdinal = ""))',
   ].join(' && ');
 
   return {

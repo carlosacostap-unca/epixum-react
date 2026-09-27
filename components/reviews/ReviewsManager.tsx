@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Review, Sprint, User } from "@/types";
 import { createReviewSlotsBatch, bookReviewSlot, cancelReviewBooking, deleteReviewSlot } from "@/lib/actions-reviews";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FormattedDate from "@/components/FormattedDate";
-import { canStudentCancelReview } from "@/lib/review-cancellation";
+import { getStudentCancellationBlockReason } from "@/lib/review-cancellation";
 
 interface ReviewsManagerProps {
   sprint: Sprint;
@@ -29,6 +29,14 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
   const [breakFrequency, setBreakFrequency] = useState(0);
   const [meetingLink, setMeetingLink] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const refreshCurrentTime = () => setCurrentTime(new Date());
+    refreshCurrentTime();
+    const interval = window.setInterval(refreshCurrentTime, 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const isTeacher = canManage;
   const isStudent = currentUser.role === "estudiante";
@@ -85,7 +93,7 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
   };
 
   const handleCancel = async (reviewId: string) => {
-    if (!confirm("¿Cancelar reserva?")) return;
+    if (!confirm("¿Cancelar esta reserva? El turno quedará disponible para otro alumno.")) return;
     
     startTransition(async () => {
         const res = await cancelReviewBooking(reviewId);
@@ -260,6 +268,19 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
                         const isBooked = !!review.student;
                         const isMyBooking = review.student === currentUser.id;
                         const studentName = review.expand?.student?.name || "Estudiante";
+                        const cancellationBlockReason = isMyBooking && currentTime
+                            ? getStudentCancellationBlockReason(review, currentTime)
+                            : null;
+                        const canCancelBooking = isMyBooking
+                            && currentTime !== null
+                            && cancellationBlockReason === null;
+                        const cancellationStatus = currentTime === null
+                            ? 'Comprobando si el turno puede cancelarse…'
+                            : cancellationBlockReason === 'protected'
+                                ? 'Evaluación cargada · reserva protegida'
+                                : cancellationBlockReason === 'started'
+                                    ? 'El turno ya comenzó · no puede cancelarse'
+                                    : 'No se pudo validar el horario del turno';
                         
                         const status = review.status || 'Pendiente';
                         let statusColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
@@ -371,7 +392,7 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                         Ver Detalle
                                                     </Link>
-                                                    {canStudentCancelReview(review) ? (
+                                                    {canCancelBooking ? (
                                                         <button
                                                             onClick={() => handleCancel(review.id)}
                                                             disabled={isPending}
@@ -381,7 +402,7 @@ export default function ReviewsManager({ sprint, initialReviews, currentUser, ca
                                                         </button>
                                                     ) : (
                                                         <span className="px-3 py-2 text-xs font-medium text-zinc-600 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-300 rounded-lg">
-                                                            Evaluación cargada · reserva protegida
+                                                            {cancellationStatus}
                                                         </span>
                                                     )}
                                                 </>

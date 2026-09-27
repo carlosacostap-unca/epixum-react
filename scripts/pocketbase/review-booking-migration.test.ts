@@ -27,3 +27,13 @@ test('review cancellation migration derives protection without changing academic
   assert.match(cancellationSource, /studentCancellationLocked:changed = false/);
   assert.doesNotMatch(cancellationSource, /DELETE FROM reviews|UPDATE reviews\s+SET\s+(student|bookingOrdinal|public_note|status)\s*=/i);
 });
+
+const upcomingCancellationMigrationPath = new URL('../../pb_migrations/1790460000_allow_upcoming_review_cancellation.js', import.meta.url);
+const upcomingCancellationSource = readFileSync(upcomingCancellationMigrationPath, 'utf8');
+
+test('upcoming review cancellation migration changes only the update rule', () => {
+  assert.match(upcomingCancellationSource, /startTime > @now/);
+  assert.match(upcomingCancellationSource, /reviews\.updateRule = upcomingCancellationReviewUpdateRule/);
+  assert.match(upcomingCancellationSource, /reviews\.updateRule = previousReviewUpdateRule/);
+  assert.doesNotMatch(upcomingCancellationSource, /app\.db|fields\.(add|remove)|collection\(["']reviews["']\)\.(create|update|delete)/);
+});

@@ -22,7 +22,7 @@ test("student review update is self-booking only and protects evaluation fields"
   assert.match(rule, /bookingOrdinal = "second"/);
   assert.match(rule, /@request\.body\.studentCancellationLocked:changed = false/);
   assert.match(rule, /studentCancellationLocked = false/);
-  assert.match(rule, /student = @request\.auth\.id && @request\.body\.student = "" && @request\.body\.bookingOrdinal = ""/);
+  assert.match(rule, /startTime > @now && student = @request\.auth\.id && @request\.body\.student = "" && @request\.body\.bookingOrdinal = ""/);
 });
 
 test("review rules never reference the legacy private note field", () => {

@@ -7,7 +7,7 @@ import { revalidateCohort } from "./cohort-cache";
 import { errorMessage } from "./errors";
 import { attachPrivateReviewNote, withoutPrivateReviewFields } from "./review-privacy";
 import { nextBookingOrdinal } from "./review-bookings";
-import { hasTeacherReviewContent } from "./review-cancellation";
+import { getStudentCancellationBlockReason, hasTeacherReviewContent } from "./review-cancellation";
 import { createPrivilegedServerClient } from "./pocketbase-server";
 
 async function requireActiveStudentInCohort(
@@ -192,11 +192,21 @@ export async function cancelReviewBooking(reviewId: string) {
                 ...review,
                 privateNote: privateNote?.content,
             });
-            if (hasTeacherContent) {
+            const cancellationBlockReason = getStudentCancellationBlockReason({
+                startTime: review.startTime,
+                studentCancellationLocked: hasTeacherContent,
+            });
+            if (cancellationBlockReason === 'protected') {
                 if (!review.studentCancellationLocked) {
                     await privilegedPb.collection('reviews').update(reviewId, { studentCancellationLocked: true });
                 }
                 return { success: false, error: 'Esta reserva ya tiene contenido docente y no puede cancelarse' };
+            }
+            if (cancellationBlockReason === 'started') {
+                return { success: false, error: 'Este turno ya comenzó y no puede cancelarse' };
+            }
+            if (cancellationBlockReason === 'invalid-start') {
+                return { success: false, error: 'No se pudo validar el horario del turno' };
             }
         } else if (user.role !== 'docente' && user.role !== 'admin') {
              // Teachers can cancel any booking (remove student from slot)

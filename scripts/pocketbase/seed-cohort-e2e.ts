@@ -77,20 +77,20 @@ async function main() {
     assignment: assignmentB.id, student: student.id, repositoryUrl: 'https://github.com/epixum/e2e-b',
   });
   await ensureRecord(pb, 'reviews', 'roomNumber', 'E2E-A', {
-    sprint: sprintA.id, teacher: teacher.id, startTime: '2026-03-20 10:00:00.000Z',
-    endTime: '2026-03-20 10:20:00.000Z', roomNumber: 'E2E-A', status: 'Pendiente',
+    sprint: sprintA.id, teacher: teacher.id, startTime: '2099-03-20 10:00:00.000Z',
+    endTime: '2099-03-20 10:20:00.000Z', roomNumber: 'E2E-A', status: 'Pendiente',
   });
   await ensureRecord(pb, 'reviews', 'roomNumber', 'E2E-B', {
-    sprint: sprintB.id, teacher: teacher.id, startTime: '2026-08-20 10:00:00.000Z',
-    endTime: '2026-08-20 10:20:00.000Z', roomNumber: 'E2E-B', status: 'Pendiente',
+    sprint: sprintB.id, teacher: teacher.id, startTime: '2099-08-20 10:00:00.000Z',
+    endTime: '2099-08-20 10:20:00.000Z', roomNumber: 'E2E-B', status: 'Pendiente',
   });
   await ensureRecord(pb, 'reviews', 'roomNumber', 'E2E-B-SECOND', {
-    sprint: sprintB.id, teacher: teacher.id, startTime: '2026-08-20 11:00:00.000Z',
-    endTime: '2026-08-20 11:20:00.000Z', roomNumber: 'E2E-B-SECOND', status: 'Pendiente',
+    sprint: sprintB.id, teacher: teacher.id, startTime: '2099-08-20 11:00:00.000Z',
+    endTime: '2099-08-20 11:20:00.000Z', roomNumber: 'E2E-B-SECOND', status: 'Pendiente',
   });
   await ensureRecord(pb, 'reviews', 'roomNumber', 'E2E-B-THIRD', {
-    sprint: sprintB.id, teacher: teacher.id, startTime: '2026-08-20 12:00:00.000Z',
-    endTime: '2026-08-20 12:20:00.000Z', roomNumber: 'E2E-B-THIRD', status: 'Pendiente',
+    sprint: sprintB.id, teacher: teacher.id, startTime: '2099-08-20 12:00:00.000Z',
+    endTime: '2099-08-20 12:20:00.000Z', roomNumber: 'E2E-B-THIRD', status: 'Pendiente',
   });
   const inquiryA = await ensureRecord(pb, 'inquiries', 'title', 'Consulta E2E Cohorte A', {
     title: 'Consulta E2E Cohorte A', description: 'Pregunta exclusiva A', status: 'Pendiente',

@@ -1,6 +1,9 @@
 import type { Review } from '@/types';
 
 type TeacherReviewContent = Pick<Review, 'public_note' | 'privateNote' | 'status'>;
+type StudentCancellationReview = Pick<Review, 'startTime' | 'studentCancellationLocked'>;
+
+export type StudentCancellationBlockReason = 'protected' | 'started' | 'invalid-start';
 
 export function hasTeacherReviewContent(review: TeacherReviewContent): boolean {
   return Boolean(
@@ -11,7 +14,22 @@ export function hasTeacherReviewContent(review: TeacherReviewContent): boolean {
 }
 
 export function canStudentCancelReview(
-  review: Pick<Review, 'studentCancellationLocked'>,
+  review: StudentCancellationReview,
+  now: Date = new Date(),
 ): boolean {
-  return review.studentCancellationLocked !== true;
+  return getStudentCancellationBlockReason(review, now) === null;
+}
+
+export function getStudentCancellationBlockReason(
+  review: StudentCancellationReview,
+  now: Date = new Date(),
+): StudentCancellationBlockReason | null {
+  if (review.studentCancellationLocked === true) return 'protected';
+
+  const startTime = Date.parse(review.startTime);
+  const currentTime = now.getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(currentTime)) return 'invalid-start';
+  if (startTime <= currentTime) return 'started';
+
+  return null;
 }
